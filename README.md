@@ -12,7 +12,7 @@ This loader tackle in an unified way three main problems with images on the web 
 
 Moreover, we aim to automatize everything that doesn't strictly require your input:
 
-- calculating which are the best breakpoints for resolution switching;
+- calculating best breakpoints for resolution switching;
 - ordering sources by most efficient image format;
 - providing sensible defaults;
 - serving a fallback for older browsers;
@@ -22,9 +22,9 @@ We also fucused on flexiblity and customizability: conversion, resizing and tran
 
 **Aren't there other tools doing the same stuff?**
 ![Well yes, but actually no](docs/well-yes-but-actually-no.jpg?raw=true)
-We found some notable tools while evaluating if it was worth to create our own package, but none of them combine all the requirements we now offer:
+We found some notable tools while evaluating if it was worth to create our own package, but none of them combines all the requirements we now offer:
 
-- manages together conversion, resolution switching and art direction, will all their weird interactions;
+- manages together conversion, resolution switching and art direction, with all their weird interactions;
 - framework agnostic;
 - operates at build time (did anyone said SSG?);
 - works offline;
@@ -65,7 +65,7 @@ Features we'd like to implement, by most-wanted order.
 ## <span id="donations"></span> Donations and shameless self-advertisement
 
 [Dreamonkey](https://dreamonkey.com/) is a software house based in Reggio Emilia, Italy.
-We release packages as open-source when we feel they would benefit the entire community, nontheless we spend a considerabile amount of time studying, coding, maintaining and enhancing them.
+We release packages as open-source when we feel they could benefit the entire community, nontheless we spend a considerabile amount of time studying, coding, maintaining and enhancing them.
 
 Does your business or personal projects depend on our packages? Consider donating here on Github to help us maintain them and allow us to create new ones!
 
@@ -93,7 +93,7 @@ webpackConf.module.rules.push({
 
 #### On Quasar framework
 
-Due presumely to some kind of incompatibility with [theirs HTML loader](https://github.com/quasarframework/quasar/issues/5383#issuecomment-560510363), you must tap into low level Vue template to use this loader with [Quasar framework](https://quasar.dev/) (on which it has been tested and developed).
+Presumely due to some kind of incompatibility with [theirs HTML loader](https://github.com/quasarframework/quasar/issues/5383#issuecomment-560510363), you must tap into low level Vue template to use this loader with [Quasar framework](https://quasar.dev/) (on which it has been tested and developed).
 
 ```javascript
 webpackConf.module.rules.push({
@@ -106,7 +106,7 @@ webpackConf.module.rules.push({
 });
 ```
 
-It is not possible to only specify `test: /\.vue$/` because Vue templates are actually [processed many times](https://github.com/vuejs/vue-loader/issues/1164#issuecomment-370947737) (one for general file plus one per each used tag) and this would break the loader workflow.
+It is not possible to specify only `test: /\.vue$/` because Vue templates are actually [processed many times](https://github.com/vuejs/vue-loader/issues/1164#issuecomment-370947737) (one for general file plus one per each used tag) and this would break the loader workflow.
 A caching mechanism (as suggested by Vue creator in this cases) won't work efficiently and will break framework-agnosticism.
 
 ### <span id="engines"></span> Engines
@@ -116,7 +116,7 @@ Every engine has its installation guide (independent from this loader) and you c
 
 #### [`sharp`](https://github.com/lovell/sharp) (conversion | resolution switching)
 
-Everything should "Just Work" out-of-the-box. It's installed by default when adding the loader dependency, but check for [`libvips` dependency](https://sharp.pixelplumbing.com/en/stable/install/#libvips) if something doesn't work properly. If you get build errors at the first run, try deleting and re-installing the whole `node_modules` folder.
+Everything should "Just Work™" out-of-the-box. It's installed by default when adding the loader dependency, but check for [`libvips` dependency](https://sharp.pixelplumbing.com/en/stable/install/#libvips) if something doesn't work properly. If you get build errors at the first run, try deleting and re-installing the whole `node_modules` folder.
 
 #### [`thumbor`](https://github.com/thumbor/thumbor) (art direction)
 
@@ -125,7 +125,7 @@ Installation is currently a pain in the ass and docs are out-of-sync, but it's s
 **Thumbor adapter is currently the most messed up adapter and only works under Linux.**
 It ships with a preset configuration, but you can overwrite string config options [via environment variables](https://thumbor.readthedocs.io/en/latest/configuration.html#override-config-through-environment-variable).
 
-We also didn't found an elegant solution to abstract most of the transformation adapter code into common code and to start `thumbor` instance just once per build process, so if you can think a solution for this which **is self contained and doesn't require external configuration**, we'd like to get in touch with you.
+We also didn't found an elegant solution to abstract most of the transformation adapter code into common code and to start `thumbor` instance just once per build process, so if you can think of a solution for this which **is self contained and doesn't require external configuration**, we'd like to get in touch with you.
 
 That's a lot of limitations, we know, any help with this part of the loader (and support for an equivalent software, even if paid and closed source) will be greatly appreciated.
 
@@ -290,7 +290,7 @@ Source will be ordered by format efficiency: `webp` > `jpeg`
 
 ### <span id="resolution-switching"></span> Resolution switching
 
-Breakpoints generation adds as many breakpoints as possible into narrow viewports (smartphones), which suffer high budle sizes the most (eg. when using data network); it also grants some breakpoints to wider viewports (laptops, desktops), where is less critical to save bandwidth.
+Breakpoints generation adds as many breakpoints as possible into narrow viewports (smartphones), which suffer high bundle sizes the most (eg. when using data network); it also grants some breakpoints to wider viewports (laptops, desktops), where is less critical to save bandwidth.
 If narrow viewports need less breakpoints than originally allocated for them, those breakpoints are re-allocated to wider viewports and removed when they cannot be used in the widest viewport available.
 
 #### `resizer` (default: 'sharp')
@@ -422,12 +422,12 @@ const opts = {
 ### Does it work in every possible scenario?
 
 **NO!**
-Being a webpack loader, it has its limits derived by being a build-time tool: it will only work for images statically referenced in your code.
+Being a webpack loader, it has limits derived by being a build-time tool: it will only work for images statically referenced in your code.
 If you are dynamically changing your `<img>` `src` attribute, this loader cannot help you. If you are doing so with a JS framework via dynamic bindings (Vue `:src="..."`, Angular `[src]="..."`, etc), changing your component to use slots instead could help you and make your components more flexible.
 
 ### Only use in production
 
-The compilation time overhead of this loader is high, due to image processing. It is not advisable to use it during development unless you have a really valid motivation to do so. You'll probably want to conditionally apply it to your webpack chain only when compiling for production.
+The compilation time overhead of this loader is high, due to image processing. It is not advisable to use it during development unless you have a really valid motivation to do so. You'll probably want to apply it conditionally to your webpack chain only when compiling for production.
 
 ```javascript
 if (process.env.NODE_ENV === "production") {
@@ -500,12 +500,12 @@ So the selector should take into accout both structures, depending on the contex
 ### How do I enable/disable conversion and/or resolution switching?
 
 Conversion and resolution-switching are enabled by default.
-If you want to globally disable them, set `conversion.converter` and/or `resolutionSwitching.resizer` to `null` into the loader options.
+If you want to disable them globally, set `conversion.converter` and/or `resolutionSwitching.resizer` to `null` into the loader options.
 Currently there is no way to disable them on a per-image basis.
 
 ### Which default value should I use for `size`?
 
-`defaultSize`, which is an option of art direction configuration, will be also be used for resolution switching in some particular edge cases which rely on a fallback image:
+`defaultSize`, which is an option of art direction configuration, will be used also for resolution switching in some particular edge cases which need a fallback image:
 
 - if a breakpoint is generated after the last art direction source;
 - if there are no art direction sources at all.
