@@ -95,10 +95,10 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1500px\)".*srcset=".*\.\/example-tb_1500-r_16_9-s_50.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/s,
           );
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\.\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture>.*<source.*media="\(max-width: 1500px\)".*srcset=".*\/example-tb_1500-r_16_9-s_50.*\.jpg.*".*\/>.*<\/picture>/s,
           );
         });
 
@@ -110,6 +110,7 @@ describe('Responsive image loader', () => {
                 transformer: 'thumbor',
                 aliases: {
                   xs: '600',
+                  md: '1023',
                 },
               },
               ...conversionDisabled,
@@ -118,9 +119,10 @@ describe('Responsive image loader', () => {
           );
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\.\/example-tb_xs-r_3_2-s_50-b_\d*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_3_2-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
+
         it('should merge inline options with default transformations when both are provided', async () => {
           const output = await setup(
             './assets/single-image-inline-config.html',
@@ -129,10 +131,10 @@ describe('Responsive image loader', () => {
                 transformer: 'thumbor',
                 aliases: {
                   xs: '600',
-                  xl: '1920',
+                  md: '1023',
                 },
                 defaultTransformations: {
-                  xl: { ratio: '21:9', size: 1.0 },
+                  xs: { ratio: '5:3', size: 0.5 },
                 },
               },
               ...conversionDisabled,
@@ -141,10 +143,7 @@ describe('Responsive image loader', () => {
           );
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1920px\)".*srcset=".*\.\/example-tb_1920-r_21_9-s_100-b_\d*\.jpg.*".*\/>.*<\/picture>/gs,
-          );
-          expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\.\/example-tb_600-r_3_2-s_100-b_\d*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_3_2-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -164,7 +163,7 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\.\/example-tb_1200-r_2_3-s_100-b_\d*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -203,7 +202,7 @@ describe('Responsive image loader', () => {
             artDirection: {
               transformer: 'thumbor',
               defaultTransformations: {
-                '600': { path: 'example-custom.jpg' },
+                '600': { path: 'custom-example.jpg' },
               },
             },
             ...conversionDisabled,
@@ -211,7 +210,7 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\.\/example-tb_600-path-b_\d*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-p-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -248,7 +247,7 @@ describe('Responsive image loader', () => {
 
           // TODO: src will probably be in a different path
           expect(output).toMatch(
-            /<picture>.*<img.*responsive.*src="\.\/example\.jpg".*class="hello".*fake-attribute.*alt="hey there">.*<\/picture>/gs,
+            /<picture>.*<img.*responsive.*src="\.\/example\.jpg".*class="hello".*fake-attribute.*alt="hey there".*>.*<\/picture>/gs,
           );
         });
 
@@ -298,7 +297,7 @@ describe('Responsive image loader', () => {
 
         // When supporting only one format, we should not use `<picture>` tag and only rely on `srcset`
         expect(output).toMatch(
-          /<img.*srcset="\.\/example-b_\d*\.jpg.*\.\/example-b_\d*\.jpg.*".*\/>/gs,
+          /<img.*srcset="\/example-b_\d*\.jpg.*\/example-b_\d*\.jpg.*".*\/>/gs,
         );
       });
     });
