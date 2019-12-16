@@ -1,6 +1,6 @@
 import { isNull, isUndefined } from 'lodash';
 import { lookup } from 'mime-types';
-import * as path from 'path';
+import { resolve } from 'path';
 import { byMostEfficientFormat, ConversionResponsiveImage } from './conversion';
 import {
   byIncreasingMaxViewport,
@@ -27,15 +27,13 @@ function generatePlaceholder(path: string): string {
 }
 
 export function parse(
+  context: string,
   rootContext: string,
   source: string,
 ): {
   sourceWithPlaceholders: string;
   parsedImages: ResponsiveImage[];
 } {
-  // TODO: Find a way to use webpack resolve system to reverse used aliases
-  const appPath = `${rootContext}/src`;
-
   const responsiveImages: ResponsiveImage[] = [];
   // We reduce Buffer to a string using `toString` to be able to apply a RegExp
   const imageTags = source.match(IMAGES_PATTERN) ?? [];
@@ -49,10 +47,13 @@ export function parse(
 
     const [, imagePath] = attributesMatches;
 
-    const resolvedPath = path.resolve(
-      appPath,
-      imagePath.startsWith('~') ? imagePath.slice(1) : imagePath,
-    );
+    // TODO: manage webpack aliases
+    // If it starts with '~', treat it like an uri relative to root level
+    const resolveArgs = imagePath.startsWith('~')
+      ? [rootContext, imagePath.slice(1)]
+      : [context, imagePath];
+
+    const resolvedPath = resolve(...resolveArgs);
 
     imagesMatchesMap[resolvedPath] = imageTag;
 
@@ -107,6 +108,8 @@ export function enhance(
   source: string,
   images: ConversionResponsiveImage[],
 ): string {
+  // TODO: prevent <picture> generation when art direction and conversion are disabled
+
   for (const image of images) {
     const sortedSources = image.sources
       .sort(byIncreasingMaxViewport)
@@ -141,5 +144,6 @@ export function enhance(
       enhancedImage,
     );
   }
+
   return source;
 }

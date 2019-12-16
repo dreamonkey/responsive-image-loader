@@ -1,6 +1,6 @@
 import { getOptions } from 'loader-utils';
 import { merge } from 'lodash';
-import * as validate from 'schema-utils';
+import validate from 'schema-utils';
 import { DeepPartial } from 'ts-essentials';
 import { loader } from 'webpack';
 import { OPTIONS_SCHEMA, ResponsiveImageLoaderConfig } from './config';
@@ -43,6 +43,7 @@ export default defineLoader(function(source) {
   const options = merge({}, DEFAULT_OPTIONS, userOptions);
 
   const { sourceWithPlaceholders, parsedImages } = parse(
+    this.context,
     this.rootContext,
     source.toString(),
   );
