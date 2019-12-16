@@ -2,21 +2,20 @@ import { ChildProcess, spawn } from 'child_process';
 import { writeFileSync } from 'fs';
 import { map } from 'lodash';
 import { parse } from 'path';
-import * as request from 'request';
+import request from 'request';
 import { loader } from 'webpack';
 import { getTempImagesDir } from '../models';
 import {
   generateTransformationUri,
   isCustomTransformation,
   TransformationDescriptor,
-  TransformationSource
+  TransformationSource,
 } from '../transformation';
 import { TransformationAdapter } from './transformers';
 
 const THUMBOR_URL = 'http://localhost';
 const THUMBOR_PORT = '8888';
-const THUMBOR_CONFIGURATION_PATH =
-  'dist/responsive-image-loader/transformers/thumbor.conf';
+const THUMBOR_CONFIGURATION_PATH = 'dist/src/transformers/thumbor.conf';
 // This is duplicated from `thumbor.conf`
 // Read comments there for context
 const THUMBOR_FILE_LOADER_ROOT_PATH = '/home/';
@@ -27,7 +26,7 @@ let JOBS_IN_QUEUE = 0;
 
 function generateTransformationUrl(
   imagePath: string,
-  transformation: TransformationDescriptor
+  transformation: TransformationDescriptor,
 ): string {
   const urlStart = `${THUMBOR_URL}:${THUMBOR_PORT}/unsafe/`;
   const urlSmart = '/smart/';
@@ -62,7 +61,7 @@ function generateTransformationUrl(
 function createFiles(
   this: loader.LoaderContext,
   imagePath: string,
-  transformations: TransformationDescriptor[]
+  transformations: TransformationDescriptor[],
 ): Promise<TransformationSource[]> {
   return Promise.all(
     map(
@@ -82,12 +81,12 @@ function createFiles(
             request(
               url,
               { encoding: null },
-              (error, response, body) => (result = body)
+              (error, response, body) => (result = body),
             ).on('close', () => {
               const { uri, uriWithHash } = generateTransformationUri(
                 imagePath,
                 result,
-                transformation
+                transformation,
               );
 
               const { base } = parse(uri);
@@ -104,21 +103,21 @@ function createFiles(
                     path,
                     uri,
                     uriWithHash,
-                    width: transformation.maxViewport * transformation.size
-                  }
-                ]
+                    width: transformation.maxViewport * transformation.size,
+                  },
+                ],
               });
             });
           } catch (e) {
             console.log(e);
             reject(e);
           }
-        })
-    )
+        }),
+    ),
   );
 }
 
-async function thumborProcessReady() {
+async function thumborProcessReady(): Promise<void> {
   const healthcheckUrl = `${THUMBOR_URL}:${THUMBOR_PORT}/healthcheck`;
   return new Promise(async (resolve, reject) => {
     // Wait thumbor process to initialize
@@ -149,7 +148,7 @@ async function thumborProcessReady() {
 // Do not use lambda functions, they won't retain `this` context
 export const thumborTransformer: TransformationAdapter = async function(
   imagePath,
-  transformations
+  transformations,
 ) {
   JOBS_IN_QUEUE++;
 
@@ -159,7 +158,7 @@ export const thumborTransformer: TransformationAdapter = async function(
       'thumbor',
       ['--port', THUMBOR_PORT, '--conf', THUMBOR_CONFIGURATION_PATH],
       // Shows output from thumbor process into the console
-      { stdio: 'inherit' }
+      { stdio: 'inherit' },
     );
     THUMBOR_PROCESS_KILL_TIMEOUT = setTimeout(() => {
       if (JOBS_IN_QUEUE === 0) {
@@ -176,7 +175,7 @@ export const thumborTransformer: TransformationAdapter = async function(
 
   try {
     transformationSources.push(
-      ...(await createFiles.call(this, imagePath, transformations))
+      ...(await createFiles.call(this, imagePath, transformations)),
     );
   } catch (e) {
     console.error(e);

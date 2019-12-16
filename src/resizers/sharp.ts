@@ -1,30 +1,30 @@
 import { format, parse } from 'path';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { ResizingAdapter } from './resizers';
 import { generateResizingUri } from '../resizing';
 
 export const sharpResizer: ResizingAdapter = async function(
   sourcePath,
   destinationPath,
-  breakpointWidth
+  breakpointWidth,
 ) {
   // JPEGs created with Samsung cameras are corrupted because of a firmware bug
   // Official solution is to ignore the error while reading the file
   // See https://github.com/lovell/sharp/issues/1578#issuecomment-474299429
   const resizing = sharp(sourcePath, { failOnError: false }).resize(
-    breakpointWidth
+    breakpointWidth,
   );
   const result = await resizing.toBuffer();
 
   const { uri, uriWithHash } = generateResizingUri(
     sourcePath,
     result,
-    breakpointWidth
+    breakpointWidth,
   );
 
   destinationPath = format({
     dir: parse(destinationPath).dir,
-    base: parse(uri).base
+    base: parse(uri).base,
   });
 
   this.emitFile(uriWithHash, result, {});

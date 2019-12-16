@@ -1,14 +1,14 @@
-import * as fileType from 'file-type';
+import fileType from 'file-type';
 import { isNull, isUndefined } from 'lodash';
 import { format as formatPath, parse } from 'path';
-import * as readChunk from 'read-chunk';
+import readChunk from 'read-chunk';
 import { loader } from 'webpack';
-import { deepFreeze } from './helpers';
 import {
   ConversionAdapter,
   ConversionAdapterPresets,
 } from './converters/converters';
 import { sharpConverter } from './converters/sharp';
+import { deepFreeze } from './helpers';
 import {
   BaseResponsiveImage,
   BaseSource,
@@ -82,7 +82,10 @@ export function byMostEfficientFormat(
   );
 }
 
-export const generateConversionUri = (path: string, content: Buffer) =>
+export const generateConversionUri = (
+  path: string,
+  content: Buffer,
+): ReturnType<typeof generateUri> =>
   // 'c' stands for 'converted'
   generateUri(path, content, () => '-c');
 

@@ -1,5 +1,5 @@
 import { format as formatPath, parse } from 'path';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { generateConversionUri } from '../conversion';
 import { ConversionAdapter } from './converters';
 

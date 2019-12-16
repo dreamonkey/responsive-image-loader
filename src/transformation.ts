@@ -10,7 +10,7 @@ import {
   max,
   merge,
   min,
-  omit
+  omit,
 } from 'lodash';
 import { DeepRequired, Dictionary } from 'ts-essentials';
 import { loader } from 'webpack';
@@ -20,7 +20,7 @@ import { ResponsiveImage } from './parsing';
 import { thumborTransformer } from './transformers/thumbor';
 import {
   TransformationAdapter,
-  TransformationAdapterPresets
+  TransformationAdapterPresets,
 } from './transformers/transformers';
 
 export function capSize(value: number): number {
@@ -46,7 +46,7 @@ export type TransformationDescriptor =
   | CustomTransformationDescriptor;
 
 export function isCustomTransformation(
-  transformation: TransformationDescriptor
+  transformation: TransformationDescriptor,
 ): transformation is CustomTransformationDescriptor {
   return has(transformation, 'path');
 }
@@ -76,21 +76,21 @@ export interface TransformationResponsiveImage extends BaseResponsiveImage {
 }
 
 export function isTransformationResponsiveImage(
-  responsiveImage: ResponsiveImage
+  responsiveImage: ResponsiveImage,
 ): responsiveImage is TransformationResponsiveImage {
   return !!(responsiveImage as TransformationResponsiveImage).options
     ?.inlineArtDirection;
 }
 
 export function isTransformationSource(
-  source: BaseSource | TransformationSource
+  source: BaseSource | TransformationSource,
 ): source is TransformationSource {
   return !!(source as TransformationSource).maxViewport;
 }
 
 export function byIncreasingMaxViewport(
   a: BaseSource | TransformationSource,
-  b: BaseSource | TransformationSource
+  b: BaseSource | TransformationSource,
 ): number {
   if (isTransformationSource(a) && isTransformationSource(b)) {
     return a.maxViewport - b.maxViewport;
@@ -106,7 +106,7 @@ export function byIncreasingMaxViewport(
 
 export function decodeTransformation(
   imagePath: string,
-  encodedTransformations: string
+  encodedTransformations: string,
 ): TransformationMap {
   const transformations: TransformationMap = {};
 
@@ -135,16 +135,16 @@ export function decodeTransformation(
     if (optionsKeys.includes('path')) {
       transformations[name] = {
         path: optionsMap['path'],
-        size
+        size,
       };
     } else if (optionsKeys.includes('ratio') || optionsKeys.includes('size')) {
       transformations[name] = {
         ratio: optionsMap['ratio'],
-        size
+        size,
       };
     } else {
       throw new Error(
-        `Inline transformation ${name} for image ${imagePath} has no valid options`
+        `Inline transformation ${name} for image ${imagePath} has no valid options`,
       );
     }
   }
@@ -168,8 +168,8 @@ const MAX_VIEWPORT_PATTERN = /^(\d+)$/;
 
 function resolveAliases(
   transformations: TransformationMap,
-  aliases: TransformationAliasesMap
-) {
+  aliases: TransformationAliasesMap,
+): TransformationMap {
   return mapKeys(transformations, (_, name) => {
     const nameWithoutAliases = isUndefined(aliases[name])
       ? name
@@ -178,27 +178,27 @@ function resolveAliases(
   });
 }
 
-function validateTransformationName(name: string) {
+function validateTransformationName(name: string): void {
   if (!MAX_VIEWPORT_PATTERN.test(name)) {
     throw new Error(
-      `${name} is not a valid transformation name. Have you used an alias without defining it?`
+      `${name} is not a valid transformation name. Have you used an alias without defining it?`,
     );
   }
 }
 
 function generateDescriptors(
-  transformations: DeepRequired<TransformationMap>
+  transformations: DeepRequired<TransformationMap>,
 ): TransformationDescriptor[] {
   return map(transformations, (transformation, name) => {
     // We only need capturing groups, full match element is dropped
     const [maxViewport] = map(
       drop(name.match(MAX_VIEWPORT_PATTERN), 1),
-      Number
+      Number,
     );
 
     return {
       ...transformation,
-      maxViewport
+      maxViewport,
     };
   });
 }
@@ -206,17 +206,17 @@ function generateDescriptors(
 export function normalizeTransformations(
   {
     inlineTransformations,
-    transformationsToIgnore
+    transformationsToIgnore,
   }: TransformationInlineOptions,
   {
     aliases,
     defaultRatio,
     defaultSize,
     defaultTransformations,
-    transformer
-  }: TransformationConfig
+    transformer,
+  }: TransformationConfig,
 ): TransformationDescriptor[] {
-  if (isUndefined(transformer)) {
+  if (isNull(transformer)) {
     return [];
   }
 
@@ -230,7 +230,7 @@ export function normalizeTransformations(
   const transformations = merge(
     {},
     resolveAliases(filteredDefaultTransformations, aliases),
-    resolveAliases(inlineTransformations, aliases)
+    resolveAliases(inlineTransformations, aliases),
   );
 
   const transformationNames = Object.keys(transformations);
@@ -249,24 +249,26 @@ export function normalizeTransformations(
   });
 
   return generateDescriptors(
-    transformations as DeepRequired<TransformationMap>
+    transformations as DeepRequired<TransformationMap>,
   );
 }
 
 export const generateTransformationUri = (
   path: string,
   content: Buffer,
-  transformation: TransformationDescriptor
-) =>
+  transformation: TransformationDescriptor,
+): ReturnType<typeof generateUri> =>
   generateUri(path, content, () => {
+    const { maxViewport, size } = transformation;
     // 'tb' stands for 'transformation breakpoint'
-    let pathBody = `-tb_${transformation.maxViewport}`;
+    let pathBody = `-tb_${maxViewport}`;
 
     if (isCustomTransformation(transformation)) {
       // 'p' stands for 'path'
-      pathBody += '-p';
+      // 's' stands for 'size'
+      pathBody += `-p-s_${size * 100}`;
     } else {
-      const { ratio, size } = transformation;
+      const { ratio } = transformation;
       // 'r' stands for 'ratio'
       // 's' stands for 'size'
       pathBody += `-r_${ratio.replace(':', '_')}-s_${size * 100}`;
@@ -280,14 +282,14 @@ type TransformationAdapterPresetsMap = {
 };
 
 const presetTransformers: TransformationAdapterPresetsMap = deepFreeze({
-  thumbor: thumborTransformer
+  thumbor: thumborTransformer,
 });
 
 export function transformImage(
   this: loader.LoaderContext,
   imagePath: string,
   transformations: TransformationDescriptor[],
-  transformer: TransformationConfig['transformer']
+  transformer: TransformationConfig['transformer'],
 ): Promise<TransformationSource[]> {
   if (isNull(transformer) || transformations.length === 0) {
     return Promise.resolve([]);
