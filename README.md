@@ -497,6 +497,10 @@ So the selector should take into accout both structures, depending on the contex
 }
 ```
 
+### The image I provided for the custom transformation isn't working...
+
+Custom transformation images' path currently cannot contain `_` or `:` characters, check if your does and if it's the case update the file name!
+
 ### How do I enable/disable conversion and/or resolution switching?
 
 Conversion and resolution-switching are enabled by default.

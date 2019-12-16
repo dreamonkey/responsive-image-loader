@@ -2,14 +2,14 @@ import { isNull, isUndefined } from 'lodash';
 import { lookup } from 'mime-types';
 import { resolve } from 'path';
 import { byMostEfficientFormat, ConversionResponsiveImage } from './conversion';
+import { BaseResponsiveImage, Breakpoint } from './models';
+import { byIncreasingWidth } from './resizing';
 import {
   byIncreasingMaxViewport,
   decodeTransformation,
   isTransformationSource,
   TransformationResponsiveImage,
 } from './transformation';
-import { BaseResponsiveImage, Breakpoint } from './models';
-import { byIncreasingWidth } from './resizing';
 
 export type ResponsiveImage =
   | BaseResponsiveImage
@@ -24,6 +24,20 @@ const imagesMatchesMap: { [index: string]: string } = {};
 
 function generatePlaceholder(path: string): string {
   return `[[responsive:${path}]]`;
+}
+
+// TODO: manage webpack aliases
+export function resolveImagePath(
+  rootContext: string,
+  context: string,
+  imagePath: string,
+): string {
+  // If it starts with '~', treat it like an uri relative to root level
+  const resolveArgs = imagePath.startsWith('~')
+    ? [rootContext, imagePath.slice(1)]
+    : [context, imagePath];
+
+  return resolve(...resolveArgs);
 }
 
 export function parse(
@@ -47,13 +61,7 @@ export function parse(
 
     const [, imagePath] = attributesMatches;
 
-    // TODO: manage webpack aliases
-    // If it starts with '~', treat it like an uri relative to root level
-    const resolveArgs = imagePath.startsWith('~')
-      ? [rootContext, imagePath.slice(1)]
-      : [context, imagePath];
-
-    const resolvedPath = resolve(...resolveArgs);
+    const resolvedPath = resolveImagePath(rootContext, context, imagePath);
 
     imagesMatchesMap[resolvedPath] = imageTag;
 

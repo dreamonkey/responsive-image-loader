@@ -1,15 +1,16 @@
 import { getOptions } from 'loader-utils';
-import { merge } from 'lodash';
+import { each, merge } from 'lodash';
 import validate from 'schema-utils';
 import { DeepPartial } from 'ts-essentials';
 import { loader } from 'webpack';
 import { OPTIONS_SCHEMA, ResponsiveImageLoaderConfig } from './config';
 import { ConversionResponsiveImage, convertImage } from './conversion';
 import { DEFAULT_OPTIONS } from './defaults';
-import { enhance, parse } from './parsing';
+import { enhance, parse, resolveImagePath } from './parsing';
 import { resizeImage } from './resizing';
 import {
   capSize,
+  isCustomTransformation,
   isTransformationResponsiveImage,
   normalizeTransformations,
   transformImage,
@@ -70,6 +71,17 @@ export default defineLoader(function(source) {
         responsiveImage.options.inlineArtDirection,
         options.artDirection,
       );
+
+      // Normalizes paths of custom transformations
+      each(transformations, transformation => {
+        if (isCustomTransformation(transformation)) {
+          transformation.path = resolveImagePath(
+            this.rootContext,
+            this.context,
+            transformation.path,
+          );
+        }
+      });
 
       const transformationSources = await transformImage.call(
         this,
