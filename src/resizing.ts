@@ -1,6 +1,6 @@
-import { openSync, closeSync, statSync } from 'fs';
+import { existsSync, writeFileSync, statSync } from 'fs';
 import { isNull, isUndefined, map, times } from 'lodash';
-import { format, parse } from 'path';
+import { format, parse, join } from 'path';
 import { loader } from 'webpack';
 import { deepFreeze } from './helpers';
 import { Breakpoint, generateUri, getTempImagesDir } from './models';
@@ -10,14 +10,21 @@ import { sharpResizer } from './resizers/sharp';
 import {
   byIncreasingMaxViewport,
   isTransformationSource,
-  TransformationSource
+  TransformationSource,
 } from './transformation';
 
-const DUMMY_IMAGE_PATH = 'fake-image.jpg';
+const DUMMY_IMAGE_PATH = 'dummy-image.gif';
+// Taken from http://png-pixel.com/
+const DUMMY_IMAGE_BASE64_DATA = Buffer.from(
+  'R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+  'base64',
+);
 
 function getEmptyImagePath(): string {
-  const path = `${getTempImagesDir()}/${DUMMY_IMAGE_PATH}`;
-  closeSync(openSync(path, 'a'));
+  const path = join(getTempImagesDir(), DUMMY_IMAGE_PATH);
+  if (!existsSync(path)) {
+    writeFileSync(path, DUMMY_IMAGE_BASE64_DATA);
+  }
   return path;
 }
 
@@ -26,7 +33,7 @@ type ResizingAdapterPresetsMap = {
 };
 
 const presetResizers: ResizingAdapterPresetsMap = deepFreeze({
-  sharp: sharpResizer
+  sharp: sharpResizer,
 });
 
 export interface ResizingConfig {
@@ -60,8 +67,8 @@ interface ResizingInterval {
 export const generateResizingUri = (
   path: string,
   content: Buffer,
-  breakpoint: number
-) =>
+  breakpoint: number,
+): ReturnType<typeof generateUri> =>
   // 'b' stands for 'breakpoint'
   generateUri(path, content, () => `-b_${breakpoint}`);
 
@@ -74,14 +81,14 @@ function generateIntervalDelimiters(
   originalPath: string,
   minViewport: number,
   maxViewport: number,
-  defaultSize: number
+  defaultSize: number,
 ): ResizingIntervalDelimiter[] {
   const delimiters: ResizingIntervalDelimiter[] = sources
     .sort(byIncreasingMaxViewport)
     .map(({ path, maxViewport, size }) => ({
       path,
       size: size!,
-      viewport: maxViewport
+      viewport: maxViewport,
     }));
 
   let firstDelimiterAfterMinViewport: ResizingIntervalDelimiter | undefined;
@@ -107,9 +114,9 @@ function generateIntervalDelimiters(
           // We need minDelimiter image size to be 0 when checked later on,
           //  so we provide a path to an empty image
           path: getEmptyImagePath(),
-          size: defaultSize
+          size: defaultSize,
         }),
-    viewport: minViewport
+    viewport: minViewport,
   };
 
   const maxDelimiter: ResizingIntervalDelimiter = {
@@ -117,13 +124,13 @@ function generateIntervalDelimiters(
       ? lastDelimiterAfterMaxViewport
       : {
           path: originalPath,
-          size: defaultSize
+          size: defaultSize,
         }),
-    viewport: maxViewport
+    viewport: maxViewport,
   };
 
   const delimitersWithinRange = delimiters.filter(
-    ({ viewport }) => viewport > minViewport || viewport < maxViewport
+    ({ viewport }) => viewport > minViewport || viewport < maxViewport,
   );
 
   return [minDelimiter, ...delimitersWithinRange, maxDelimiter];
@@ -131,7 +138,7 @@ function generateIntervalDelimiters(
 
 function generateIntervals(
   delimiters: ResizingIntervalDelimiter[],
-  maxBreakpoints: number
+  maxBreakpoints: number,
 ): ResizingInterval[] {
   const intervalCount = delimiters.length - 1;
   const breakpointsPerInterval = Math.floor(maxBreakpoints / intervalCount);
@@ -152,13 +159,13 @@ function generateIntervals(
       //  to have a coherent value
       startDelimiter: {
         ...previousDelimiter,
-        width: Math.ceil(previousDelimiter.viewport * currentDelimiter.size)
+        width: Math.ceil(previousDelimiter.viewport * currentDelimiter.size),
       },
       endDelimiter: {
         ...currentDelimiter,
-        width: Math.ceil(currentDelimiter.viewport * currentDelimiter.size)
+        width: Math.ceil(currentDelimiter.viewport * currentDelimiter.size),
       },
-      breakpointsCount
+      breakpointsCount,
     });
   }
   return intervals;
@@ -169,7 +176,7 @@ async function generateBreakpoints(
   resizer: ResizingAdapter,
   minStepSize: number,
   currentInterval: ResizingInterval,
-  nextInterval: ResizingInterval | undefined
+  nextInterval: ResizingInterval | undefined,
 ): Promise<Breakpoint[]> {
   let breakpoints: Breakpoint[];
   let allStepsAreWideEnough: boolean;
@@ -177,29 +184,29 @@ async function generateBreakpoints(
   do {
     const { breakpointsCount, startDelimiter, endDelimiter } = currentInterval;
     const breakpointUnit = Math.floor(
-      (endDelimiter.width - startDelimiter.width) / (breakpointsCount + 1)
+      (endDelimiter.width - startDelimiter.width) / (breakpointsCount + 1),
     );
     const breakpointViewports = times(
       breakpointsCount,
-      index => startDelimiter.width + breakpointUnit * (index + 1)
+      index => startDelimiter.width + breakpointUnit * (index + 1),
     );
 
     breakpoints = await Promise.all(
       breakpointViewports.map(breakpoint =>
-        (resizer).call(
+        resizer.call(
           this,
           endDelimiter.path,
           format({
             dir: getTempImagesDir(),
-            base: parse(endDelimiter.path).base
+            base: parse(endDelimiter.path).base,
           }),
-          breakpoint
-        )
-      )
+          breakpoint,
+        ),
+      ),
     );
 
     const imagesSizes = [startDelimiter, ...breakpoints, endDelimiter].map(
-      breakpointOrDelimiter => statSync(breakpointOrDelimiter.path).size
+      breakpointOrDelimiter => statSync(breakpointOrDelimiter.path).size,
     );
 
     allStepsAreWideEnough = true;
@@ -243,9 +250,9 @@ export async function resizeImage(
     minViewport,
     maxViewport,
     maxBreakpointsCount,
-    minSizeDifference
+    minSizeDifference,
   }: ResizingConfig,
-  defaultSize: number
+  defaultSize: number,
 ): Promise<ResponsiveImage> {
   if (isNull(resizer)) {
     return Promise.resolve(image);
@@ -256,11 +263,11 @@ export async function resizeImage(
   }
 
   const artDirectionSources = image.sources.filter(source =>
-    isTransformationSource(source)
+    isTransformationSource(source),
   ) as TransformationSource[];
 
   const viewportToSourceMap = new Map<number, TransformationSource>(
-    map(artDirectionSources, source => [source.maxViewport, source])
+    map(artDirectionSources, source => [source.maxViewport, source]),
   );
 
   const intervalDelimiters = generateIntervalDelimiters(
@@ -268,7 +275,7 @@ export async function resizeImage(
     image.originalPath,
     minViewport,
     maxViewport,
-    defaultSize
+    defaultSize,
   );
 
   const intervals = generateIntervals(intervalDelimiters, maxBreakpointsCount);
@@ -288,7 +295,7 @@ export async function resizeImage(
       resizer,
       minSizeDifference,
       currentInterval,
-      nextInterval
+      nextInterval,
     );
 
     if (breakpoints.length > 0) {
@@ -300,7 +307,7 @@ export async function resizeImage(
         const fallbackSource = {
           breakpoints: [],
           path: image.originalPath,
-          maxViewport: endViewport
+          maxViewport: endViewport,
         };
         viewportToSourceMap.set(endViewport, fallbackSource);
         intervalSource = fallbackSource;
