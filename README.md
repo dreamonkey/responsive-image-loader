@@ -4,7 +4,7 @@
 
 A webpack loader to automagically bring your website images to a whole new level of responsiveness!
 
-This loader tackle in an unified way three main problems with images on the web nowadays:
+This loader tackles in an unified way three main problems with images on the web nowadays:
 
 - usage of most efficient image formats (automatic conversion);
 - images resizing to always serve the lightest bundle possible (resolution switching);
@@ -87,7 +87,7 @@ webpackConf.module.rules.push({
   loader: 'responsive-image-loader',
   options: {
     /* ... */
-  }
+  },
 });
 ```
 
@@ -102,7 +102,7 @@ webpackConf.module.rules.push({
   loader: 'responsive-image-loader',
   options: {
     /* ... */
-  }
+  },
 });
 ```
 
@@ -112,7 +112,7 @@ A caching mechanism (as suggested by Vue creator in this cases) won't work effic
 ### <span id="engines"></span> Engines
 
 Conversion, art direction and resolution switching are powered via an adapter by a fully decoupled and swappable engine.
-Every engine has its installation guide (independent from this loader) and you can also provide your custom adapter to support a new engine (in which case, a PR is welcome!)
+Every engine has its installation guide (independent from this loader) and you can also provide your custom adapter to support a new engine (in which case, we welcome PRs!)
 
 #### [`sharp`](https://github.com/lovell/sharp) (conversion | resolution switching)
 
@@ -189,8 +189,8 @@ const fullOptionsExample: ResponsiveImageLoaderConfig = {
     converter: 'sharp',
     enabledFormats: {
       webp: true,
-      jpeg: true
-    }
+      jpeg: true,
+    },
   },
   resolutionSwitching: {
     resizer: 'sharp',
@@ -198,24 +198,24 @@ const fullOptionsExample: ResponsiveImageLoaderConfig = {
       minViewport: 200,
       maxViewport: 3840,
       maxSteps: 5,
-      minStepSize: 35
-    }
+      minStepSize: 35,
+    },
   },
   artDirection: {
     transformer: 'thumbor',
     aliases: {
       xs: '699', // 0-699
-      md: '1439' // 700-1439
+      md: '1439', // 700-1439
     },
     defaults: {
       ratio: 'original',
       size: 1.0,
       transformations: {
         xs: { ratio: '4:3' },
-        md: { ratio: '2:3', size: 0.5 }
-      }
-    }
-  }
+        md: { ratio: '2:3', size: 0.5 },
+      },
+    },
+  },
 };
 
 // Example of a typical configuration
@@ -227,7 +227,7 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
       sm: '1023', // 700-1023
       md: '1439', // 1201-1439
       lg: '1919', // 1440-1919
-      xl: '3400' // 1920-3400
+      xl: '3400', // 1920-3400
     },
     defaults: {
       transformations: {
@@ -235,10 +235,10 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
         sm: { ratio: '2:1' },
         md: { ratio: '2:3', size: 0.5 },
         lg: { ratio: '16:9', size: 0.5 },
-        xl: { ratio: '21:9', size: 0.5 }
-      }
-    }
-  }
+        xl: { ratio: '21:9', size: 0.5 },
+      },
+    },
+  },
 };
 ```
 
@@ -261,7 +261,7 @@ const opt = {
   converter: function(sourcePath, destinationPath, uriWithoutHash, format) {
     /**/
     return breakpoint;
-  }
+  },
 };
 
 // Provide custom adapter defined elsewere, **never use a lambda function**
@@ -269,7 +269,7 @@ const conversionAdapter: ConversionAdapter = function(
   sourcePath,
   destinationPath,
   uriWithoutHash,
-  format
+  format,
 ) {
   /**/
   return breakpoint;
@@ -310,14 +310,14 @@ const opt = {
   resizer: function(sourcePath, destinationPath, breakpointWidth) {
     /**/
     return breakpoint;
-  }
+  },
 };
 
 // Provide custom adapter defined elsewere, **never use a lambda function**
 const resizingAdapter: ResizingAdapter = function(
   sourcePath,
   destinationPath,
-  breakpointWidth
+  breakpointWidth,
 ) {
   /**/
   return breakpoint;
@@ -361,13 +361,13 @@ const opt = {
   transformer: function(imagePath, transformations) {
     /**/
     return transformationSource;
-  }
+  },
 };
 
 // Provide custom adapter defined elsewere, **never use a lambda function**
 const transformationAdapter: TransformationAdapter = function(
   imagePath,
-  transformations
+  transformations,
 ) {
   /**/
   return transformationSource;
@@ -386,8 +386,8 @@ const opts = {
     sm: '1023', // 700-1023
     md: '1439', // 1201-1439
     lg: '1919', // 1440-1919
-    xl: '3400' // 1920-3400
-  }
+    xl: '3400', // 1920-3400
+  },
 };
 ```
 
@@ -412,8 +412,8 @@ const opts = {
     sm: { ratio: '2:1' },
     md: { ratio: '2:3', size: 0.5 },
     lg: { ratio: '16:9', size: 0.5 },
-    xl: { ratio: '21:9', size: 0.5 }
-  }
+    xl: { ratio: '21:9', size: 0.5 },
+  },
 };
 ```
 
