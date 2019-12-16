@@ -1,32 +1,40 @@
-import memoryfs from 'memory-fs';
-import path from 'path';
+import MemoryFileSystem from 'memory-fs';
+import { resolve } from 'path';
 import webpack from 'webpack';
+import { DeepPartial } from 'ts-essentials';
+import { ResponsiveImageLoaderConfig } from 'src/config';
 
 export async function compiler(
   entryPath: string,
-  options = {}
+  options: DeepPartial<ResponsiveImageLoaderConfig> = {},
 ): Promise<webpack.Stats> {
   const compiler = webpack({
     context: __dirname,
-    entry: `./${entryPath}`,
+    entry: entryPath,
     output: {
-      path: path.resolve(__dirname),
-      filename: 'bundle.js'
+      path: resolve(__dirname),
+      filename: 'bundle.js',
     },
     module: {
       rules: [
         {
           test: /\.html$/,
-          use: {
-            loader: path.resolve(__dirname, './responsive-image-loader.ts'),
-            options
-          }
-        }
-      ]
-    }
+          // Remember loaders are applied in reverse order
+          use: [
+            // Transforms into a JS module returning the raw generated string
+            'raw-loader',
+            // Our loader
+            {
+              loader: resolve(__dirname, '../src/responsive-image-loader.ts'),
+              options,
+            },
+          ],
+        },
+      ],
+    },
   });
 
-  compiler.outputFileSystem = new memoryfs();
+  compiler.outputFileSystem = new MemoryFileSystem();
 
   return new Promise((resolve, reject) => {
     compiler.run((err, stats) => {

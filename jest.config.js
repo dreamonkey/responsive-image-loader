@@ -5,7 +5,9 @@ module.exports = {
   globals: {
     __DEV__: true,
   },
-  setupFilesAfterEnv: ['<rootDir>/test/jest.setup.ts'],
+  // Jest assumes by default we are testing for a browser
+  // See https://github.com/facebook/jest/issues/1909#issuecomment-252981401
+  testEnvironment: 'node',
   // noStackTrace: true,
   // bail: true,
   // cache: false,
@@ -23,7 +25,7 @@ module.exports = {
     },
   },
   testMatch: ['<rootDir>/test/**/*.spec.ts', '<rootDir>/src/**/*.jest.spec.ts'],
-  moduleFileExtensions: ['json', 'ts'],
+  moduleFileExtensions: ['js', 'json', 'ts'],
   moduleNameMapper: {
     '^~/(.*)$': '<rootDir>/$1',
     '^src/(.*)$': '<rootDir>/src/$1',
@@ -36,7 +38,7 @@ module.exports = {
     // We use babel-jest to compile them
     // See https://github.com/nrwl/nx/issues/812#issuecomment-429488470
     // See https://jestjs.io/docs/en/configuration.html#transformignorepatterns-array-string
-    [`^(${esModules}).+\\.js$`]: 'babel-jest',
+    // [`^(${esModules}).+\\.js$`]: 'babel-jest',
     '^.+\\.(ts|js|html)$': 'ts-jest',
   },
   transformIgnorePatterns: [`<rootDir>/node_modules/(?!(${esModules}))`],

@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "outDir": "./dist",
     "sourceMap": true,
     "strict": true,
-    "target": "es6"
+    "target": "es6",
+    "module": "esnext"
   },
   "exclude": ["dist"]
 }
