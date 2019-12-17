@@ -9,7 +9,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es6",
-    "module": "esnext"
+    "module": "commonjs"
   },
   "exclude": ["dist"]
 }

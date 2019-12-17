@@ -25,6 +25,7 @@
   "files": [
     "dist"
   ],
+  "main": "dist/src/responsive-image-loader.js",
   "peerDependencies": {
     "webpack": "^4.0.0 || ^5.0.0"
   },
