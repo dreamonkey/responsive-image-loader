@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import { writeFileSync } from 'fs';
 import { map } from 'lodash';
-import { parse } from 'path';
+import { join, parse } from 'path';
 import request from 'request';
 import { loader } from 'webpack';
 import { getTempImagesDir } from '../models';
@@ -15,7 +15,7 @@ import { TransformationAdapter } from './transformers';
 
 const THUMBOR_URL = 'http://localhost';
 const THUMBOR_PORT = '8888';
-const THUMBOR_CONFIGURATION_PATH = 'dist/src/transformers/thumbor.conf';
+const THUMBOR_CONFIGURATION_PATH = join(__dirname, 'thumbor.conf');
 // This is duplicated from `thumbor.conf`
 // Read comments there for context
 const THUMBOR_FILE_LOADER_ROOT_PATH = '/home/';
