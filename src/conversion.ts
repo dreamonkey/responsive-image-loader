@@ -1,6 +1,6 @@
 import fileType from 'file-type';
 import { isNull, isUndefined } from 'lodash';
-import { format as formatPath, parse } from 'path';
+import { format as formatPath, join, parse } from 'path';
 import readChunk from 'read-chunk';
 import { loader } from 'webpack';
 import {
@@ -15,6 +15,7 @@ import {
   generateUri,
   getTempImagesDir,
   SupportedImageFormats,
+  getOuputDir,
 } from './models';
 import { TransformationSource } from './transformation';
 
@@ -96,8 +97,8 @@ async function generateFallbackSource(
   format: SupportedImageFormats,
 ): Promise<ConversionSource> {
   const { name } = parse(sourcePath);
-  const destinationPath = `${getTempImagesDir()}/${name}.${format}`;
-  const uri = `/img/${name}.${format}`;
+  const destinationPath = join(getTempImagesDir(), `${name}.${format}`);
+  const uri = join(getOuputDir(), `${name}.${format}`);
 
   const fallbackBreakpoint = await converter.call(
     this,

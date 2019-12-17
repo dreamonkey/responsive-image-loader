@@ -1,9 +1,11 @@
-import { deepFreeze } from './helpers';
 import { ConversionConfig } from './conversion';
+import { deepFreeze } from './helpers';
+import { PathsConfig } from './models';
 import { ResizingConfig } from './resizing';
 import { TransformationConfig } from './transformation';
 
 export interface ResponsiveImageLoaderConfig {
+  paths: PathsConfig;
   conversion: ConversionConfig;
   artDirection: TransformationConfig;
   resolutionSwitching: ResizingConfig;
@@ -12,6 +14,15 @@ export interface ResponsiveImageLoaderConfig {
 export const OPTIONS_SCHEMA = deepFreeze({
   type: 'object',
   properties: {
+    paths: {
+      type: 'object',
+      properties: {
+        outputDir: { type: 'string' },
+        // TODO: add more adherent properties check if possible
+        aliases: { type: 'object' },
+      },
+      additionalProperties: false,
+    },
     conversion: {
       type: 'object',
       properties: {

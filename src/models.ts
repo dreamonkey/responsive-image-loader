@@ -1,6 +1,35 @@
 import { existsSync, mkdirSync } from 'fs';
 import { getHashDigest } from 'loader-utils';
-import { parse } from 'path';
+import { isUndefined } from 'lodash';
+import { join, parse } from 'path';
+import { Dictionary } from 'ts-essentials';
+
+export interface PathsConfig {
+  outputDir: string;
+  aliases: Dictionary<string>;
+}
+
+let _pathAliases: [string, string][] | undefined;
+let _outputDir: string | undefined;
+
+export function setPathsOptions({ outputDir, aliases }: PathsConfig): void {
+  _outputDir = outputDir;
+  _pathAliases = Object.entries(aliases);
+}
+
+export function getPathAliases(): [string, string][] {
+  if (isUndefined(_pathAliases)) {
+    throw new Error('Path options has not been initialized properly');
+  }
+  return _pathAliases;
+}
+
+export function getOuputDir(): string {
+  if (isUndefined(_outputDir)) {
+    throw new Error('Path options has not been initialized properly');
+  }
+  return _outputDir;
+}
 
 const TEMP_DIR = 'dist/temp';
 const TEMP_IMAGES_DIR = `${TEMP_DIR}/images`;
@@ -51,8 +80,7 @@ export function generateUri(
 ): { uri: string; uriWithHash: string } {
   const hash = getHashDigest(content, 'md5', 'hex', 8);
   const { name: filename, ext: extension } = parse(path);
-  // TODO: '/img' is hardcoded, make it configurable or flexible
-  const uriStart = `/img/${filename}`;
+  const uriStart = join(getOuputDir(), filename);
   const uriBody = uriBodyGenerator();
 
   return {

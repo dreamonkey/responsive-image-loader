@@ -2,7 +2,7 @@ import { isNull, isUndefined } from 'lodash';
 import { lookup } from 'mime-types';
 import { resolve } from 'path';
 import { byMostEfficientFormat, ConversionResponsiveImage } from './conversion';
-import { BaseResponsiveImage, Breakpoint } from './models';
+import { BaseResponsiveImage, Breakpoint, getPathAliases } from './models';
 import { byIncreasingWidth } from './resizing';
 import {
   byIncreasingMaxViewport,
@@ -26,18 +26,31 @@ function generatePlaceholder(path: string): string {
   return `[[responsive:${path}]]`;
 }
 
-// TODO: manage webpack aliases
+// Aliases are resolved relative to root level
+function resolvePathAliases(
+  rootContext: string,
+  imagePath: string,
+): string[] | undefined {
+  for (const [pathAlias, pathAliasValue] of getPathAliases()) {
+    if (imagePath.startsWith(pathAlias)) {
+      return [rootContext, pathAliasValue, imagePath.slice(pathAlias.length)];
+    }
+  }
+
+  return undefined;
+}
+
+// TODO: manage webpack aliases automatically
 export function resolveImagePath(
   rootContext: string,
   context: string,
   imagePath: string,
 ): string {
-  // If it starts with '~', treat it like an uri relative to root level
-  const resolveArgs = imagePath.startsWith('~')
-    ? [rootContext, imagePath.slice(1)]
-    : [context, imagePath];
-
-  return resolve(...resolveArgs);
+  // If no alias is found, we resolve it like a path relative to
+  //  the processed file location
+  return resolve(
+    ...(resolvePathAliases(rootContext, imagePath) ?? [context, imagePath]),
+  );
 }
 
 export function parse(

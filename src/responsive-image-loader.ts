@@ -15,6 +15,7 @@ import {
   normalizeTransformations,
   transformImage,
 } from './transformation';
+import { setPathsOptions } from './models';
 
 // `callback` cannot be a lambda function or `this` context won't be bound correcly
 function defineLoader(callback: loader.Loader): loader.Loader {
@@ -42,6 +43,8 @@ export default defineLoader(function(source) {
   }
 
   const options = merge({}, DEFAULT_OPTIONS, userOptions);
+
+  setPathsOptions(options.paths);
 
   const { sourceWithPlaceholders, parsedImages } = parse(
     this.context,

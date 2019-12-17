@@ -73,7 +73,7 @@ Do you need a UX and quality driven team to work on your project? Get in touch w
 
 ## <span id="installation"></span> Installation
 
-Install via `yarn add @dreamonkey/responsive-image-loader` or `npm install --save @dreamonkey/responsive-image-loader`.
+Install via `yarn add -D @dreamonkey/responsive-image-loader` or `npm install -D @dreamonkey/responsive-image-loader`.
 
 ### <span id="loader"></span> Loader
 
@@ -84,7 +84,7 @@ Add the loader into your webpack rules targetting `.html` files.
 ```javascript
 webpackConf.module.rules.push({
   test: /\.html$/,
-  loader: 'responsive-image-loader',
+  loader: '@dreamonkey/responsive-image-loader',
   options: {
     /* ... */
   },
@@ -99,8 +99,17 @@ Presumely due to some kind of incompatibility with [theirs HTML loader](https://
 webpackConf.module.rules.push({
   test: /\.vue$/,
   resourceQuery: /type=template/,
-  loader: 'responsive-image-loader',
+  loader: '@dreamonkey/responsive-image-loader',
   options: {
+    paths: {
+      /* Quasar output folder */
+      outputDir: '/img/',
+      /* Quasar webpack aliases */
+      aliases: {
+        '~': 'src/',
+        /* ... */
+      },
+    },
     /* ... */
   },
 });
@@ -186,6 +195,13 @@ You can check out the default configuration [here](defaults.ts).
 // Full configuration, you won't ever need all this options
 const fullOptionsExample: ResponsiveImageLoaderConfig = {
   conversion: {
+    paths: {
+      outputDir: '/images/',
+      aliases: {
+        '@randomjapp': 'src',
+        /* ... */
+      },
+    },
     converter: 'sharp',
     enabledFormats: {
       webp: true,
@@ -218,8 +234,14 @@ const fullOptionsExample: ResponsiveImageLoaderConfig = {
   },
 };
 
-// Example of a typical configuration
+// Example of a typical configuration, if using art direction
 const options: DeepPartial<ResponsiveImageLoaderConfig> = {
+  paths: {
+    outputDir: '/img/',
+    aliases: {
+      '~': 'src/',
+    },
+  },
   artDirection: {
     transformer: 'thumbor',
     aliases: {
@@ -240,6 +262,29 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
     },
   },
 };
+```
+
+### <span id="paths"></span> Paths
+
+#### `outputDir` (default: '/')
+
+Specify a folder which will prefix images uri emitted by this loader.
+Your production bundle probably isn't organized with a flat folder structure, so you'll want to use this options most of the time.
+
+```typescript
+// All images will be emitted into the bundle `img` folder
+const opt = { outputDir: '/img/' };
+```
+
+#### `aliases` (default: {})
+
+Specify a map of aliases which is used to correctly resolve source image paths. Most of the times this will match your webpack aliases map (we still don't know how to programmatically get those ones, we welcome PRs!).
+
+In case of multiple matches, the first one win.
+
+```typescript
+// Make `~` point to `src/` folder
+const opt = { aliases: { '~': 'src/' } };
 ```
 
 ### <span id="conversion"></span> Conversion
@@ -434,18 +479,6 @@ if (process.env.NODE_ENV === "production") {
     webpackConfig.module.rules.push({ ... });
 }
 ```
-
-### What's up with all those hard-coded paths?
-
-Currently the loader is meant to work with Quasar framework file structure and because of this some paths are hard-coded. Our plan is to abstract and make them configurable before the stable version is released.
-
-Currently hard-coded paths are:
-
-- source images path are resolved relatively to `/src` folder
-- emitted images are expected to be emitted into a `/img` folder inside webpack output folder (usually `dist/<something>/`)
-- temporary folder is assumed to be `/dist/temp`
-- log file (only used during development) is assumed to be `/dist/temp/log.txt`
-- converted image temporary folder is assumed to be `/dist/temp/images`
 
 ### Pay attention to CSS selectors
 

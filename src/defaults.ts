@@ -2,12 +2,16 @@ import { deepFreeze } from './helpers';
 import { ResponsiveImageLoaderConfig } from './config';
 
 export const DEFAULT_OPTIONS = deepFreeze<ResponsiveImageLoaderConfig>({
+  paths: {
+    outputDir: '/',
+    aliases: {},
+  },
   conversion: {
     converter: 'sharp',
     enabledFormats: {
       webp: true,
-      jpg: true
-    }
+      jpg: true,
+    },
   },
   resolutionSwitching: {
     resizer: 'sharp',
@@ -15,13 +19,13 @@ export const DEFAULT_OPTIONS = deepFreeze<ResponsiveImageLoaderConfig>({
     maxViewport: 3840,
     maxBreakpointsCount: 5,
     minSizeDifference: 35,
-    supportRetina: true
+    supportRetina: true,
   },
   artDirection: {
     transformer: null,
     aliases: {},
     defaultRatio: 'original',
     defaultSize: 1.0,
-    defaultTransformations: {}
-  }
+    defaultTransformations: {},
+  },
 });
