@@ -1,25 +1,44 @@
 {
-  "name": "responsive-image-loader",
+  "name": "@dreamonkey/responsive-image-loader",
   "version": "0.1.0",
   "description": "A webpack loader to automagically bring your website images to a whole new level of responsiveness!",
-  "author": "Paolo Caleffi <p.caleffi@dreamonkey.com>",
+  "keywords": [
+    "webpack",
+    "loader",
+    "art direction",
+    "resolution switching",
+    "conversion",
+    "flexible",
+    "responsive",
+    "automatic"
+  ],
+  "homepage": "https://github.com/dreamonkey/responsive-image-loader/blob/master/README.md",
+  "bugs": "https://github.com/dreamonkey/responsive-image-loader/issues",
+  "license": "MIT",
+  "author": "Paolo Caleffi <p.caleffi@dreamonkey.com> (https://github.com/IlCallo)",
+  "repository": "github:dreamonkey/responsive-image-loader",
   "scripts": {
     "lint": "eslint --ext .ts ./",
     "test": "jest",
     "build": "tsc && copyfiles -f src/transformers/thumbor.conf dist/src/transformers"
   },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "webpack": "^4.0.0 || ^5.0.0"
+  },
   "dependencies": {
-    "@types/sharp": "0.23.1",
-    "@types/webpack": "4.41.0",
-    "file-type": "12.4.0",
-    "lodash-es": "4.17.15",
-    "read-chunk": "3.2.0",
-    "request": "2.88.0",
-    "schema-utils": "2.6.1",
-    "sharp": "0.23.4",
-    "ts-essentials": "4.0.0",
-    "typescript": "3.7.3",
-    "webpack": "4.41.2"
+    "@types/sharp": "^0.23.1",
+    "@types/webpack": "^4.41.0",
+    "file-type": "^12.4.0",
+    "lodash-es": "^4.17.15",
+    "read-chunk": "^3.2.0",
+    "request": "^2.88.0",
+    "schema-utils": "^2.6.1",
+    "sharp": "^0.23.4",
+    "ts-essentials": "^4.0.0",
+    "typescript": "^3.7.3"
   },
   "devDependencies": {
     "@types/file-type": "10.9.1",
@@ -31,8 +50,8 @@
     "@types/mime-types": "2.1.0",
     "@types/read-chunk": "3.1.0",
     "@types/request": "2.48.3",
-    "@typescript-eslint/eslint-plugin": "2.11.0",
-    "@typescript-eslint/parser": "2.11.0",
+    "@typescript-eslint/eslint-plugin": "2.12.0",
+    "@typescript-eslint/parser": "2.12.0",
     "copyfiles": "2.1.1",
     "eslint": "6.7.2",
     "eslint-config-prettier": "6.7.0",
@@ -40,10 +59,14 @@
     "jest": "24.9.0",
     "memory-fs": "0.5.0",
     "raw-loader": "4.0.0",
-    "ts-jest": "24.2.0"
+    "ts-jest": "24.2.0",
+    "webpack": "4.41.3"
   },
   "engines": {
     "node": ">= 8.9.0",
     "yarn": ">= 1.6.0"
-  }
+  },
+  "os": [
+    "linux"
+  ]
 }
