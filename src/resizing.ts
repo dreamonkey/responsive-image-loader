@@ -87,6 +87,7 @@ function generateIntervalDelimiters(
     .sort(byIncreasingMaxViewport)
     .map(({ path, maxViewport, size }) => ({
       path,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       size: size!,
       viewport: maxViewport,
     }));

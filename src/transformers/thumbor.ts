@@ -118,27 +118,28 @@ function createFiles(
   );
 }
 
-async function thumborProcessReady(): Promise<void> {
+function thumborProcessReady(): Promise<void> {
   const healthcheckUrl = `${THUMBOR_URL}:${THUMBOR_PORT}/healthcheck`;
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     // Wait thumbor process to initialize
-    // Waiting 50ms seems to work, even without the healthcheck,
+    // Waiting 100ms seems to work, even without the healthcheck,
     // If we omit the initial waiting, all healthcheck requests fails
     // This behaviour is still unexplained
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve2 => setTimeout(resolve2, 100));
     let isReady = false;
     let retries = 0;
     while (!isReady && retries < 10) {
-      isReady = await new Promise<boolean>((resolve2, reject2) => {
+      isReady = await new Promise<boolean>(resolve3 => {
         request(healthcheckUrl, (error, response, body) => {
-          resolve2(body === 'WORKING' ? true : false);
+          resolve3(body === 'WORKING' ? true : false);
         });
       });
       retries++;
-      await new Promise(resolve3 => setTimeout(resolve3, 150));
+      await new Promise(resolve4 => setTimeout(resolve4, 150));
     }
 
-    if (retries == 10) {
+    if (retries === 10) {
       reject();
     }
 

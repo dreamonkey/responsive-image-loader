@@ -24,6 +24,7 @@ import {
 } from './transformers/transformers';
 
 export function capSize(value: number): number {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return max([min([value, 1.0])!, 0.1])!;
 }
 
@@ -191,10 +192,7 @@ function generateDescriptors(
 ): TransformationDescriptor[] {
   return map(transformations, (transformation, name) => {
     // We only need capturing groups, full match element is dropped
-    const [maxViewport] = map(
-      drop(name.match(MAX_VIEWPORT_PATTERN), 1),
-      Number,
-    );
+    const [maxViewport] = map(drop(MAX_VIEWPORT_PATTERN.exec(name), 1), Number);
 
     return {
       ...transformation,
@@ -245,6 +243,7 @@ export function normalizeTransformations(
       ? { size: defaultSize } // With custom transformations
       : { ratio: defaultRatio, size: defaultSize }; // With processable transformations
     defaults(transformation, defaultValues);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     transformation.size = capSize(transformation.size!);
   });
 
