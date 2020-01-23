@@ -17,6 +17,10 @@ export type ResponsiveImage =
 
 const IMAGES_PATTERN = /<img.*?\/>/gs;
 const ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
+// For all subsequent patterns, only the first match is taken into account
+const CLASS_PATTERN = /class="([\w\s]+)"/;
+const IMG_CLASS_PATTERN = /responsive-img-class(?:="([\w\s]+)")?/;
+const PICTURE_CLASS_PATTERN = /responsive-picture-class(?:="([\w\s]+)")?/;
 const ART_DIRECTION_ATTRIBUTE_PATTERN = /responsive-ad(?:="(\S+)")?/;
 const ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN = /responsive-ad-ignore(?:="(\S+)")?/;
 
@@ -65,7 +69,7 @@ export function parse(
   // We reduce Buffer to a string using `toString` to be able to apply a RegExp
   const imageTags = source.match(IMAGES_PATTERN) ?? [];
   for (const imageTag of imageTags) {
-    const attributesMatches = imageTag.match(ATTRIBUTES_PATTERN);
+    const attributesMatches = ATTRIBUTES_PATTERN.exec(imageTag);
 
     if (isNull(attributesMatches)) {
       // The tag doesn't have valid "responsive" or "src" attributes
@@ -83,12 +87,12 @@ export function parse(
       sources: [],
     };
 
-    const artDirectionMatches = imageTag.match(ART_DIRECTION_ATTRIBUTE_PATTERN);
+    const artDirectionMatches = ART_DIRECTION_ATTRIBUTE_PATTERN.exec(imageTag);
     if (!isNull(artDirectionMatches)) {
       const [, encodedTransformations] = artDirectionMatches;
 
-      const artDirectionIgnoreMatches = imageTag.match(
-        ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN,
+      const artDirectionIgnoreMatches = ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN.exec(
+        imageTag,
       );
 
       (responsiveImage as TransformationResponsiveImage).options = {
@@ -135,19 +139,33 @@ export function enhance(
   for (const image of images) {
     const imageMatch = imagesMatchesMap[image.originalPath];
 
-    let enhancedImage = '';
+    let enhancedImage;
 
     if (image.sources.length === 0) {
       // We just leave the original img tag if no sources has been generated
       enhancedImage = imageMatch;
     } else {
+      const originalClass = CLASS_PATTERN.exec(imageMatch)?.[1] ?? '';
+
+      const responsiveImgClassMatches = IMG_CLASS_PATTERN.exec(imageMatch);
+      const responsiveImgClass = isNull(responsiveImgClassMatches)
+        ? originalClass
+        : responsiveImgClassMatches[1] ?? '';
+
+      const responsivePictureClassMatches = PICTURE_CLASS_PATTERN.exec(
+        imageMatch,
+      );
+      const responsivePictureClass = isNull(responsivePictureClassMatches)
+        ? originalClass
+        : responsivePictureClassMatches[1] ?? '';
+
       const sortedSources = image.sources
         .sort(byIncreasingMaxViewport)
         .sort(byMostEfficientFormat);
 
       // When we have no conversions and no art-direction we could avoid using 'picture'
       // We use it anyway to always leave the original tag image "as-is" as fallback
-      enhancedImage += '<picture>\n';
+      enhancedImage = `<picture class="${responsivePictureClass}">\n`;
       for (const source of sortedSources) {
         const { breakpoints, format } = source;
 
@@ -167,7 +185,9 @@ export function enhance(
 
       // Img tag is on bottom to preserve increasing image size sort-order
       // Img tag is copied as-is to preserve original attributes
-      enhancedImage += imageMatch + '\n';
+      enhancedImage +=
+        imageMatch.replace(CLASS_PATTERN, `class="${responsiveImgClass}"`) +
+        '\n';
       enhancedImage += '</picture>\n';
     }
 

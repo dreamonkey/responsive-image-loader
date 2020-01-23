@@ -77,7 +77,7 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*type="image\/jpeg".*srcset=".*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*type="image\/jpeg".*srcset=".*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -95,10 +95,10 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/s,
+            /<picture.*>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/s,
           );
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1500px\)".*srcset=".*\/example-tb_1500-r_16_9-s_50.*\.jpg.*".*\/>.*<\/picture>/s,
+            /<picture.*>.*<source.*media="\(max-width: 1500px\)".*srcset=".*\/example-tb_1500-r_16_9-s_50.*\.jpg.*".*\/>.*<\/picture>/s,
           );
         });
 
@@ -119,7 +119,7 @@ describe('Responsive image loader', () => {
           );
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_3_2-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_3_2-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -143,7 +143,7 @@ describe('Responsive image loader', () => {
           );
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_3_2-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_3_2-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -163,7 +163,7 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -210,7 +210,7 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-p-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-p-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
 
@@ -230,9 +230,10 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 300px\)".*\/>.*<source.*media="\(max-width: 1023px\)".*<source.*media="\(max-width: 1919px\)".*\/>.*<source.*media="\(max-width: 2400px\)".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 300px\)".*\/>.*<source.*media="\(max-width: 1023px\)".*<source.*media="\(max-width: 1919px\)".*\/>.*<source.*media="\(max-width: 2400px\)".*\/>.*<\/picture>/gs,
           );
         });
+
         it('should preserve attributes on image tag', async () => {
           const output = await setup('./assets/single-image.html', {
             artDirection: {
@@ -247,7 +248,7 @@ describe('Responsive image loader', () => {
 
           // TODO: src will probably be in a different path
           expect(output).toMatch(
-            /<picture>.*<img.*responsive.*src="\.\/example\.jpg".*class="hello".*fake-attribute.*alt="hey there".*>.*<\/picture>/gs,
+            /<picture.*>.*<img.*responsive.*src="\.\/example\.jpg".*class="hello".*fake-attribute.*alt="hey there".*>.*<\/picture>/gs,
           );
         });
 
@@ -267,16 +268,16 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_4_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 600px\)".*srcset=".*\/example-tb_600-r_4_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1024px\)".*srcset=".*\/example-tb_1024-r_2_1-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 1024px\)".*srcset=".*\/example-tb_1024-r_2_1-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1440px\)".*srcset=".*\/example-tb_1440-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 1440px\)".*srcset=".*\/example-tb_1440-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
           expect(output).toMatch(
-            /<picture>.*<source.*media="\(max-width: 1920px\)".*srcset=".*\/example-tb_1920-r_16_9-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
+            /<picture.*>.*<source.*media="\(max-width: 1920px\)".*srcset=".*\/example-tb_1920-r_16_9-s_100.*\.jpg.*".*\/>.*<\/picture>/gs,
           );
         });
       });
@@ -327,6 +328,7 @@ describe('Responsive image loader', () => {
       //   //
       // },
     );
+
     it('should order formats by efficiency (webp > jpg)', async () => {
       const output = await setup(
         './assets/single-image.html',
@@ -334,7 +336,60 @@ describe('Responsive image loader', () => {
       );
 
       expect(output).toMatch(
-        /<picture>.*<source.*type="image\/webp".*srcset=".*\.webp.*".*\/>.*<source.*type="image\/jpeg".*srcset=".*\.jpg.*".*\/>.*<\/picture>/gs,
+        /<picture.*>.*<source.*type="image\/webp".*srcset=".*\.webp.*".*\/>.*<source.*type="image\/jpeg".*srcset=".*\.jpg.*".*\/>.*<\/picture>/gs,
+      );
+    });
+  });
+
+  describe('class management', () => {
+    it('should not take place when no sources are generated', async () => {
+      const output = await setup('./assets/single-image-shared-class.html', {
+        conversion: { converter: null },
+        resolutionSwitching: { resizer: null },
+      });
+
+      expect(output).toMatch(/<img.*class="hello there".*\/>/gs);
+    });
+
+    it('should apply all <img> classes to <picture>', async () => {
+      const output = await setup('./assets/single-image-shared-class.html');
+
+      expect(output).toMatch(
+        /<picture class="hello there">.*<img.*class="hello there".*\/>.*<\/picture>/gs,
+      );
+    });
+
+    it('should apply provided classes to <picture> when responsive-picture-class is present', async () => {
+      const output = await setup('./assets/single-image-picture-class.html');
+
+      expect(output).toMatch(
+        /<picture class="general kenobi">.*<img.*class="hello there".*\/>.*<\/picture>/gs,
+      );
+    });
+
+    it('should not apply classes to <picture> when an empty responsive-picture-class is present', async () => {
+      const output = await setup(
+        './assets/single-image-picture-empty-class.html',
+      );
+
+      expect(output).toMatch(
+        /<picture class="">.*<img.*class="hello there".*\/>.*<\/picture>/gs,
+      );
+    });
+
+    it('should apply provided classes to <img> when responsive-img-class is present', async () => {
+      const output = await setup('./assets/single-image-img-class.html');
+
+      expect(output).toMatch(
+        /<picture class="hello there">.*<img.*class="general kenobi".*\/>.*<\/picture>/gs,
+      );
+    });
+
+    it('should not apply classes to <img> when an empty responsive-img-class is present', async () => {
+      const output = await setup('./assets/single-image-img-empty-class.html');
+
+      expect(output).toMatch(
+        /<picture class="hello there">.*<img.*class="".*\/>.*<\/picture>/gs,
       );
     });
   });
