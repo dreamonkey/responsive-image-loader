@@ -283,23 +283,26 @@ describe('Responsive image loader', () => {
     });
 
     describe('resolution switching enabled', () => {
-      it('should apply breakpoints', async () => {
-        const output = await setup('./assets/single-image.html', {
-          resolutionSwitching: {
-            resizer: 'sharp',
-            minViewport: 200,
-            maxViewport: 1920,
-            maxBreakpointsCount: 4,
-            minSizeDifference: 35,
-          },
-          ...conversionDisabled,
-        });
+      it.todo(
+        'should apply breakpoints',
+        // async () => {
+        //   const output = await setup('./assets/single-image.html', {
+        //     resolutionSwitching: {
+        //       resizer: 'sharp',
+        //       minViewport: 200,
+        //       maxViewport: 1920,
+        //       maxBreakpointsCount: 4,
+        //       minSizeDifference: 35,
+        //     },
+        //     ...conversionDisabled,
+        //   });
 
-        // When supporting only one format, we should not use `<picture>` tag and only rely on `srcset`
-        expect(output).toMatch(
-          /<img.*srcset="\/example-b_\d*\.jpg.*\/example-b_\d*\.jpg.*".*\/>/gs,
-        );
-      });
+        //   // When supporting only one format, we should not use `<picture>` tag and only rely on `srcset`
+        //   expect(output).toMatch(
+        //     /<img.*srcset="\/example-b_\d*\.jpg.*\/example-b_\d*\.jpg.*".*\/>/gs,
+        //   );
+        // }
+      );
     });
   });
 
