@@ -129,37 +129,48 @@ export function enhance(
   source: string,
   images: ConversionResponsiveImage[],
 ): string {
-  // TODO: prevent <picture> generation when art direction and conversion are disabled
+  // TODO: prevent <picture> generation when art direction and conversion are disabled,
+  //  using only srcset
 
   for (const image of images) {
-    const sortedSources = image.sources
-      .sort(byIncreasingMaxViewport)
-      .sort(byMostEfficientFormat);
+    const imageMatch = imagesMatchesMap[image.originalPath];
 
-    // When we have no conversions and no art-direction we could avoid using 'picture'
-    // We use it anyway to always leave the original tag image "as-is" as fallback
-    let enhancedImage = '<picture>\n';
-    for (const source of sortedSources) {
-      const { breakpoints, format } = source;
+    let enhancedImage = '';
 
-      enhancedImage += '<source ';
-      enhancedImage += `type="${lookup(format)}" `;
+    if (image.sources.length === 0) {
+      // We just leave the original img tag if no sources has been generated
+      enhancedImage = imageMatch;
+    } else {
+      const sortedSources = image.sources
+        .sort(byIncreasingMaxViewport)
+        .sort(byMostEfficientFormat);
 
-      // 'media' attribute must be set before 'srcset' for testing purposes
-      if (isTransformationSource(source)) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        enhancedImage += `sizes="${source.size! * 100}vm" `;
-        enhancedImage += `media="(max-width: ${source.maxViewport}px)" `;
+      // When we have no conversions and no art-direction we could avoid using 'picture'
+      // We use it anyway to always leave the original tag image "as-is" as fallback
+      enhancedImage += '<picture>\n';
+      for (const source of sortedSources) {
+        const { breakpoints, format } = source;
+
+        enhancedImage += '<source ';
+        enhancedImage += `type="${lookup(format)}" `;
+
+        // 'media' attribute must be set before 'srcset' for testing purposes
+        if (isTransformationSource(source)) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          enhancedImage += `sizes="${source.size! * 100}vm" `;
+          enhancedImage += `media="(max-width: ${source.maxViewport}px)" `;
+        }
+
+        enhancedImage += `srcset="${generateSrcSet(breakpoints)}" `;
+        enhancedImage += '/>\n';
       }
 
-      enhancedImage += `srcset="${generateSrcSet(breakpoints)}" `;
-      enhancedImage += '/>\n';
+      // Img tag is on bottom to preserve increasing image size sort-order
+      // Img tag is copied as-is to preserve original attributes
+      enhancedImage += imageMatch + '\n';
+      enhancedImage += '</picture>\n';
     }
 
-    // Img tag is on bottom to preserve increasing image size sort-order
-    // Img tag is copied as-is to preserve original attributes
-    enhancedImage += imagesMatchesMap[image.originalPath] + '\n';
-    enhancedImage += '</picture>\n';
     source = source.replace(
       generatePlaceholder(image.originalPath),
       enhancedImage,
