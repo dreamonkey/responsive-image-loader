@@ -143,7 +143,55 @@ That's a lot of limitations, we know, any help with this part of the loader (and
 Add `responsive` attribute over an `<img>` component and it will be enhanced with conversion and resolution switching!
 
 ```html
-<img src="my-little-calogero.jpg" responsive />
+<img responsive src="my-little-calogero.jpg" />
+```
+
+By default all classes on `<img>` will also be copied over to the wrapping `<picture>`.
+If you want to change classes which are applied to `<img>` after the rewrite took place, you can use `responsive-img-class` attribute.
+If you want to manually specify which classes should be applied to `<picture>`, you can use `responsive-picture-class` attribute.
+If you add either `responsive-img-class` or `responsive-picture-class` without any value or with an empty value, classes on `<img>` and `<picture>` will be erased.
+
+```html
+<img class="hello there" responsive src="my-little-calogero.jpg" />
+<!-- will become -->
+<picture class="hello there">
+  <source />
+  <source />
+  <!-- ... -->
+  <img class="hello there" responsive src="something.jpg" />
+</picture>
+```
+
+```html
+<img
+  class="hello there"
+  responsive
+  responsive-img-class="master kenobi"
+  src="my-little-calogero.jpg"
+/>
+<!-- will become -->
+<picture class="hello there">
+  <source />
+  <source />
+  <!-- ... -->
+  <img class="master kenobi" responsive src="something.jpg" />
+</picture>
+```
+
+```html
+<img
+  class="hello there"
+  responsive
+  responsive-img-class
+  src="my-little-calogero.jpg"
+/>
+<!-- will become -->
+<picture class="hello there">
+  <source />
+  <source />
+  <!-- ... -->
+  <img responsive src="something.jpg" />
+</picture>
 ```
 
 You can opt-in to art direction adding `responsive-ad` attribute. You can also provide an encoded inline transformation as the attribute value which will be merged on top of [default transformations](#default-transformations). \
@@ -155,7 +203,7 @@ Notice that you can use both a viewport width or an [alias](#aliases) to referen
 
 ```html
 <!-- Opt-in to art direction -->
-<img src="my-little-nicola.jpg" responsive responsive-ad />
+<img responsive responsive-ad src="my-little-nicola.jpg" />
 <!--
   Define inline transformations:
   - the first uses a viewport width as name and explicitly define `ratio` and `size`.
@@ -164,26 +212,26 @@ Notice that you can use both a viewport width or an [alias](#aliases) to referen
     will be inferred from the default size.
 -->
 <img
-  src="my-little-francisco.jpg"
   responsive
   responsive-ad="699_(ratio=3:2,size=1.0);md_(path=./custom_example.jpg)"
+  src="my-little-francisco.jpg"
 />
 <!--
   Ignore all default transformations and only apply the one specified.
   `ratio` has not been specified and will be inferred from the default ratio.
 -->
 <img
-  src="my-little-kappa.jpg"
   responsive
   responsive-ad-ignore
   responsive-ad="1023_(size=0.5)"
+  src="my-little-kappa.jpg"
 />
 <!-- Ignore only 'xs' and '1500' transformations, apply all other default ones -->
 <img
-  src="my-little-cuenta.jpg"
   responsive
   responsive-ad-ignore="xs|1500"
   responsive-ad
+  src="my-little-cuenta.jpg"
 />
 ```
 
@@ -483,11 +531,19 @@ if (process.env.NODE_ENV === "production") {
 ### Pay attention to CSS selectors
 
 `<img>` will be wrapped into a `<picture>` when the loader kicks in.
-If you have to reference via selectors (both via JS or CSS), you must take this structure change into account. Use a class to reference the image in your selectors and avoid direct-descendent selector.
+Use a class to reference the image in your selectors and avoid direct-descendent selector.
+Check out class management into the [Usage](#usage) section.
 
 ```html
 <div class="container">
-  <img responsive class="my-image" src="something.jpg" />
+  <img
+    class="positioning-class"
+    responsive
+    responsive-img-class="inner-image-class"
+    src="something.jpg"
+  />
+
+  <img class="my-image" responsive src="something.jpg" />
 </div>
 ```
 
@@ -495,27 +551,46 @@ will become
 
 ```html
 <div class="container">
-  <picture>
+  <picture class="positioning-class">
     <source />
     <source />
     <!-- ... -->
-    <img responsive class="my-image" src="something.jpg" />
+    <img class="inner-image-class" responsive src="something.jpg" />
+  </picture>
+
+  <picture class="my-image">
+    <source />
+    <source />
+    <!-- ... -->
+    <img class="my-image" responsive src="something.jpg" />
   </picture>
 </div>
 ```
 
-So the selector should take into accout both structures, depending on the context
+so the selector should take into accout both structures, depending on the context
 
 ```css
 /* Should access direct child, whoever it is (eg. positioning or spacing) */
+/* (preferred) */
+.positioning-class {
+  /* ... */
+}
+
+/* Or */
 .container > img,
 .container > picture {
   /* ... */
 }
 
 /* Should access original image tag */
-.container > img,
-.container > picture > img {
+/* (preferred) */
+.inner-image-class {
+  /* ... */
+}
+
+/* Or */
+/* (preferred) */
+.container .my-image {
   /* ... */
 }
 
@@ -524,8 +599,9 @@ So the selector should take into accout both structures, depending on the contex
   /* ... */
 }
 
-/* Or (preferred) */
-.container .my-image {
+/* Or */
+.container > img,
+.container > picture > img {
   /* ... */
 }
 ```
