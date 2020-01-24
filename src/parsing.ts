@@ -18,9 +18,9 @@ export type ResponsiveImage =
 const IMAGES_PATTERN = /<img.*?\/>/gs;
 const ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
 // For all subsequent patterns, only the first match is taken into account
-const CLASS_PATTERN = /class="([\w\s]+)"/;
-const IMG_CLASS_PATTERN = /responsive-img-class(?:="([\w\s]+)")?/;
-const PICTURE_CLASS_PATTERN = /responsive-picture-class(?:="([\w\s]+)")?/;
+const CLASS_PATTERN = /class="([^"]+)"/;
+const IMG_CLASS_PATTERN = /responsive-img-class(?:="([^"]+)")?/;
+const PICTURE_CLASS_PATTERN = /responsive-picture-class(?:="([^"]+)")?/;
 const ART_DIRECTION_ATTRIBUTE_PATTERN = /responsive-ad(?:="(\S+)")?/;
 const ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN = /responsive-ad-ignore(?:="(\S+)")?/;
 

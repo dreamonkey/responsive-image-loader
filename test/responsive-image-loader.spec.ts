@@ -348,14 +348,14 @@ describe('Responsive image loader', () => {
         resolutionSwitching: { resizer: null },
       });
 
-      expect(output).toMatch(/<img.*class="hello there".*\/>/gs);
+      expect(output).toMatch(/<img.*class="hello there general-kenobi".*\/>/gs);
     });
 
     it('should apply all <img> classes to <picture>', async () => {
       const output = await setup('./assets/single-image-shared-class.html');
 
       expect(output).toMatch(
-        /<picture class="hello there">.*<img.*class="hello there".*\/>.*<\/picture>/gs,
+        /<picture class="hello there general-kenobi">.*<img.*class="hello there general-kenobi".*\/>.*<\/picture>/gs,
       );
     });
 
@@ -363,7 +363,7 @@ describe('Responsive image loader', () => {
       const output = await setup('./assets/single-image-picture-class.html');
 
       expect(output).toMatch(
-        /<picture class="general kenobi">.*<img.*class="hello there".*\/>.*<\/picture>/gs,
+        /<picture class="general-kenobi">.*<img.*class="hello there".*\/>.*<\/picture>/gs,
       );
     });
 
@@ -381,7 +381,7 @@ describe('Responsive image loader', () => {
       const output = await setup('./assets/single-image-img-class.html');
 
       expect(output).toMatch(
-        /<picture class="hello there">.*<img.*class="general kenobi".*\/>.*<\/picture>/gs,
+        /<picture class="hello there">.*<img.*class="general-kenobi".*\/>.*<\/picture>/gs,
       );
     });
 
