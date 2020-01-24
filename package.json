@@ -20,7 +20,9 @@
   "scripts": {
     "lint": "eslint --ext .ts ./",
     "test": "jest",
-    "build": "tsc && copyfiles -f src/transformers/thumbor.conf dist/src/transformers"
+    "build": "tsc && copyfiles -f src/transformers/thumbor.conf dist/src/transformers",
+    "//": "'--tag latest' cannot be managed with publishConfig because of https://github.com/yarnpkg/yarn/issues/5310",
+    "deploy": "yarn build && yarn publish --tag latest"
   },
   "files": [
     "dist/src"
@@ -69,5 +71,8 @@
   },
   "os": [
     "linux"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
