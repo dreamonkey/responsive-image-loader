@@ -197,6 +197,8 @@ describe('Responsive image loader', () => {
           ).rejects.toThrow();
         });
 
+        // TODO: how can I check that the transformation is actually using the provided path?
+        // Maybe check the hash of source and generated image?
         it('should resolve transformation to specific image when path is provided', async () => {
           const output = await setup('./assets/single-image.html', {
             artDirection: {
@@ -246,7 +248,6 @@ describe('Responsive image loader', () => {
             ...resolutionSwitchingDisabled,
           });
 
-          // TODO: src will probably be in a different path
           expect(output).toMatch(
             /<picture.*>.*<img.*responsive.*src="\.\/example\.jpg".*class="hello".*fake-attribute.*alt="hey there".*>.*<\/picture>/gs,
           );

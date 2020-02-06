@@ -18,7 +18,7 @@ Moreover, we aim to automatize everything that doesn't strictly require your inp
 - serving a fallback for older browsers;
 - and more!
 
-We also fucused on flexiblity and customizability: conversion, resizing and transformation engines can be easily switched with your implementation, which you can then PR here and make available to others.
+We also focused on flexiblity and customizability: conversion, resizing and transformation engines can be easily switched with your implementation, which you can then PR here and make available to others.
 
 **Aren't there other tools doing the same stuff?**
 ![Well yes, but actually no](docs/well-yes-but-actually-no.jpg?raw=true)
@@ -153,7 +153,9 @@ If you add either `responsive-img-class` or `responsive-picture-class` without a
 
 ```html
 <img class="hello there" responsive src="my-little-calogero.jpg" />
-<!-- will become -->
+
+<!-- WILL BECOME -->
+
 <picture class="hello there">
   <source />
   <source />
@@ -169,7 +171,9 @@ If you add either `responsive-img-class` or `responsive-picture-class` without a
   responsive-img-class="master kenobi"
   src="my-little-calogero.jpg"
 />
-<!-- will become -->
+
+<!-- WILL BECOME -->
+
 <picture class="hello there">
   <source />
   <source />
@@ -185,7 +189,9 @@ If you add either `responsive-img-class` or `responsive-picture-class` without a
   responsive-img-class
   src="my-little-calogero.jpg"
 />
-<!-- will become -->
+
+<!-- WILL BECOME -->
+
 <picture class="hello there">
   <source />
   <source />

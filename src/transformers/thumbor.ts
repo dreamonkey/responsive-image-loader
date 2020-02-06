@@ -53,8 +53,9 @@ function generateTransformationUrl(
         : Math.ceil((cropWidth / horizontalRatio) * verticalRatio);
 
     cropping = `${cropWidth}x${cropHeight}`;
+    path = imagePath;
   }
-  path = imagePath.replace(THUMBOR_FILE_LOADER_ROOT_PATH, '');
+  path = path.replace(THUMBOR_FILE_LOADER_ROOT_PATH, '');
 
   return urlStart + cropping + urlSmart + path;
 }
