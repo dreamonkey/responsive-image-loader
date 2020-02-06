@@ -20,6 +20,7 @@
   "scripts": {
     "lint": "eslint --ext .ts ./",
     "test": "jest",
+    "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
     "build": "tsc && copyfiles -f src/transformers/thumbor.conf dist/src/transformers",
     "//": "'--tag latest' cannot be managed with publishConfig because of https://github.com/yarnpkg/yarn/issues/5310",
     "deploy": "yarn build && yarn publish --tag latest"
