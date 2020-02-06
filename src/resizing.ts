@@ -307,8 +307,9 @@ export async function resizeImage(
       if (isUndefined(intervalSource)) {
         const fallbackSource = {
           breakpoints: [],
-          path: image.originalPath,
           maxViewport: endViewport,
+          path: image.originalPath,
+          size: defaultSize,
         };
         viewportToSourceMap.set(endViewport, fallbackSource);
         intervalSource = fallbackSource;

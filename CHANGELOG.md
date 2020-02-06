@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix: avoid `sizes="NaNvm"` when AD is disabled and RS is enabled
+
 ## 0.1.5
 
 - Fix: 'path' option is now correctly taken into consideration
