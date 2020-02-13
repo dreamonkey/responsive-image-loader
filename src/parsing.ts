@@ -254,7 +254,9 @@ export function enhance(
 
         // 'media' attribute must be set before 'srcset' for testing purposes
         if (isTransformationSource(source)) {
-          enhancedImage += `sizes="${source.size * 100}vm" `;
+          enhancedImage += `sizes="${
+            source.size > 1.0 ? `${source.size}px` : `${source.size * 100}vm`
+          }" `;
           enhancedImage += `media="(max-width: ${source.maxViewport}px)" `;
         }
 

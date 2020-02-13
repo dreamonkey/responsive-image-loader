@@ -2,7 +2,7 @@ import { existsSync, statSync, writeFileSync } from 'fs';
 import { isNull, isUndefined, map, times } from 'lodash';
 import { format, join, parse } from 'path';
 import { loader } from 'webpack';
-import { Breakpoint, generateUri, getTempImagesDir } from './base';
+import { Breakpoint, generateUri, getTempImagesDir, SizesMap } from './base';
 import { deepFreeze } from './helpers';
 import { ResponsiveImage } from './parsing';
 import { ResizingAdapter, ResizingAdapterPresets } from './resizers/resizers';
@@ -81,7 +81,7 @@ function generateIntervalDelimiters(
   originalPath: string,
   minViewport: number,
   maxViewport: number,
-  defaultSize: number,
+  sizes: SizesMap,
 ): ResizingIntervalDelimiter[] {
   const delimiters: ResizingIntervalDelimiter[] = sources
     .sort(byIncreasingMaxViewport)
@@ -114,7 +114,7 @@ function generateIntervalDelimiters(
           // We need minDelimiter image size to be 0 when checked later on,
           //  so we provide a path to an empty image
           path: getEmptyImagePath(),
-          size: defaultSize,
+          size: sizes[maxViewport + ''] ?? sizes.__default,
         }),
     viewport: minViewport,
   };
@@ -124,7 +124,7 @@ function generateIntervalDelimiters(
       ? lastDelimiterAfterMaxViewport
       : {
           path: originalPath,
-          size: defaultSize,
+          size: sizes[maxViewport + ''] ?? sizes.__default,
         }),
     viewport: maxViewport,
   };
@@ -134,6 +134,12 @@ function generateIntervalDelimiters(
   );
 
   return [minDelimiter, ...delimitersWithinRange, maxDelimiter];
+}
+
+function calculateDelimiterWidth(viewport: number, size: number): number {
+  // `size` lower or equal to 1.0 are considered a viewport percentage
+  // If greater, it's considered as an absolute value in px
+  return size > 1.0 ? size : Math.ceil(viewport * size);
 }
 
 function generateIntervals(
@@ -159,11 +165,17 @@ function generateIntervals(
       //  to have a coherent value
       startDelimiter: {
         ...previousDelimiter,
-        width: Math.ceil(previousDelimiter.viewport * currentDelimiter.size),
+        width: calculateDelimiterWidth(
+          previousDelimiter.viewport,
+          currentDelimiter.size,
+        ),
       },
       endDelimiter: {
         ...currentDelimiter,
-        width: Math.ceil(currentDelimiter.viewport * currentDelimiter.size),
+        width: calculateDelimiterWidth(
+          currentDelimiter.viewport,
+          currentDelimiter.size,
+        ),
       },
       breakpointsCount,
     });
@@ -252,7 +264,6 @@ export async function resizeImage(
     maxBreakpointsCount,
     minSizeDifference,
   }: ResizingConfig,
-  defaultSize: number,
 ): Promise<ResponsiveImage> {
   if (isNull(resizer)) {
     return Promise.resolve(image);
@@ -275,7 +286,7 @@ export async function resizeImage(
     image.originalPath,
     minViewport,
     maxViewport,
-    defaultSize,
+    image.options.sizes,
   );
 
   const intervals = generateIntervals(intervalDelimiters, maxBreakpointsCount);
@@ -308,7 +319,7 @@ export async function resizeImage(
           breakpoints: [],
           maxViewport: endViewport,
           path: image.originalPath,
-          size: defaultSize,
+          size: image.options.sizes.__default,
         };
         viewportToSourceMap.set(endViewport, fallbackSource);
         intervalSource = fallbackSource;
