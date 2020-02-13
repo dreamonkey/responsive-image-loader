@@ -223,7 +223,7 @@ Notice that you can use both a viewport width or an [alias](#aliases) to referen
     will be inferred from the default size.
 -->
 <img
-  responsive="size=1.0"
+  responsive="size=0.5{699}"
   responsive-ad="ratio=3:2{699};path=./custom_example.jpg{md}"
   src="my-little-francisco.jpg"
 />

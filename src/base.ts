@@ -45,13 +45,6 @@ function resolveAlias(
   viewportName: string,
   aliases: ViewportAliasesMap,
 ): string {
-  // TODO: add unit test
-  if (viewportName === '__default') {
-    throw new Error(
-      '"__default" alias is reserved for internal usage, use another name',
-    );
-  }
-
   return isUndefined(aliases[viewportName])
     ? viewportName
     : aliases[viewportName];
@@ -62,6 +55,16 @@ export function resolveAliases<T>(
   aliases: ViewportAliasesMap,
 ): Dictionary<T> {
   return mapKeys(viewportMap, (_, name) => resolveAlias(name, aliases));
+}
+
+export function guardAgainstDefaultAlias(
+  viewportMap: ViewportAliasesMap,
+): void {
+  if (Object.keys(viewportMap).includes('__default')) {
+    throw new Error(
+      '"__default" alias is reserved for internal usage, use another name',
+    );
+  }
 }
 
 const TEMP_DIR = 'dist/temp';

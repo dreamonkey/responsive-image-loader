@@ -29,6 +29,14 @@ async function setup(
 }
 
 describe('Responsive image loader', () => {
+  it('should error when __default alias is defined', async () => {
+    await expect(
+      setup('./assets/single-image.html', {
+        viewportAliases: { __default: '1500' },
+      }),
+    ).rejects.toThrow();
+  });
+
   describe('conversion disabled', () => {
     const conversionDisabled = { conversion: { converter: null } };
 
