@@ -1,8 +1,8 @@
-import { compiler } from './compiler';
+import { createHash } from 'crypto';
 import { writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { createHash } from 'crypto';
-import { existsOrCreateDirectory } from 'src/models';
+import { existsOrCreateDirectory } from 'src/base';
+import { compiler } from './compiler';
 
 const TEMP_DIR = 'dist/temp/test';
 
@@ -69,7 +69,7 @@ describe('Responsive image loader', () => {
             artDirection: {
               transformer: 'thumbor',
               defaultTransformations: {
-                '1200': { ratio: '2:3', size: 1.0 },
+                '1200': { ratio: '2:3' },
               },
             },
             ...conversionDisabled,
@@ -83,11 +83,12 @@ describe('Responsive image loader', () => {
 
         it('should apply transformations when defined as defaults', async () => {
           const output = await setup('./assets/single-image.html', {
+            defaultSize: 0.5,
             artDirection: {
               transformer: 'thumbor',
               defaultTransformations: {
-                '1200': { ratio: '2:3', size: 1.0 },
-                '1500': { ratio: '16:9', size: 0.5 },
+                '1200': { ratio: '2:3' },
+                '1500': { ratio: '16:9' },
               },
             },
             ...conversionDisabled,
@@ -95,7 +96,7 @@ describe('Responsive image loader', () => {
           });
 
           expect(output).toMatch(
-            /<picture.*>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_100.*\.jpg.*".*\/>.*<\/picture>/s,
+            /<picture.*>.*<source.*media="\(max-width: 1200px\)".*srcset=".*\/example-tb_1200-r_2_3-s_50.*\.jpg.*".*\/>.*<\/picture>/s,
           );
           expect(output).toMatch(
             /<picture.*>.*<source.*media="\(max-width: 1500px\)".*srcset=".*\/example-tb_1500-r_16_9-s_50.*\.jpg.*".*\/>.*<\/picture>/s,
@@ -106,12 +107,12 @@ describe('Responsive image loader', () => {
           const output = await setup(
             './assets/single-image-inline-config.html',
             {
+              viewportAliases: {
+                xs: '600',
+                md: '1023',
+              },
               artDirection: {
                 transformer: 'thumbor',
-                aliases: {
-                  xs: '600',
-                  md: '1023',
-                },
               },
               ...conversionDisabled,
               ...resolutionSwitchingDisabled,
@@ -127,14 +128,14 @@ describe('Responsive image loader', () => {
           const output = await setup(
             './assets/single-image-inline-config.html',
             {
+              viewportAliases: {
+                xs: '600',
+                md: '1023',
+              },
               artDirection: {
                 transformer: 'thumbor',
-                aliases: {
-                  xs: '600',
-                  md: '1023',
-                },
                 defaultTransformations: {
-                  xs: { ratio: '5:3', size: 0.5 },
+                  xs: { ratio: '5:3' },
                 },
               },
               ...conversionDisabled,
@@ -149,13 +150,13 @@ describe('Responsive image loader', () => {
 
         it('should apply transformation when its name is based on aliases', async () => {
           const output = await setup('./assets/single-image.html', {
+            viewportAliases: {
+              mdLowerHalf: '1200',
+            },
             artDirection: {
               transformer: 'thumbor',
-              aliases: {
-                mdLowerHalf: '1200',
-              },
               defaultTransformations: {
-                mdLowerHalf: { ratio: '2:3', size: 1.0 },
+                mdLowerHalf: { ratio: '2:3' },
               },
             },
             ...conversionDisabled,
@@ -174,7 +175,7 @@ describe('Responsive image loader', () => {
               artDirection: {
                 transformer: 'thumbor',
                 defaultTransformations: {
-                  lg: { ratio: '2:1', size: 1.0 },
+                  lg: { ratio: '2:1' },
                 },
               },
               ...conversionDisabled,
@@ -188,7 +189,7 @@ describe('Responsive image loader', () => {
               artDirection: {
                 transformer: 'thumbor',
                 defaultTransformations: {
-                  '%&:': { ratio: '2:1', size: 1.0 },
+                  '%&:': { ratio: '2:1' },
                 },
               },
               ...conversionDisabled,
@@ -221,10 +222,10 @@ describe('Responsive image loader', () => {
             artDirection: {
               transformer: 'thumbor',
               defaultTransformations: {
-                '300': { ratio: '4:3', size: 1.0 },
-                '1919': { ratio: '16:9', size: 1.0 },
-                '2400': { ratio: '21:9', size: 1.0 },
-                '1023': { ratio: '2:1', size: 1.0 },
+                '300': { ratio: '4:3' },
+                '1919': { ratio: '16:9' },
+                '2400': { ratio: '21:9' },
+                '1023': { ratio: '2:1' },
               },
             },
             ...conversionDisabled,
@@ -241,7 +242,7 @@ describe('Responsive image loader', () => {
             artDirection: {
               transformer: 'thumbor',
               defaultTransformations: {
-                '600': { ratio: '4:3', size: 1.0 },
+                '600': { ratio: '4:3' },
               },
             },
             ...conversionDisabled,
@@ -258,10 +259,10 @@ describe('Responsive image loader', () => {
             artDirection: {
               transformer: 'thumbor',
               defaultTransformations: {
-                '600': { ratio: '4:3', size: 1.0 },
-                '1024': { ratio: '2:1', size: 1.0 },
-                '1440': { ratio: '2:3', size: 1.0 },
-                '1920': { ratio: '16:9', size: 1.0 },
+                '600': { ratio: '4:3' },
+                '1024': { ratio: '2:1' },
+                '1440': { ratio: '2:3' },
+                '1920': { ratio: '16:9' },
               },
             },
             ...conversionDisabled,
@@ -316,12 +317,15 @@ describe('Responsive image loader', () => {
       },
     };
 
-    it.todo(
-      'should perform conversions when a converter is specified',
-      // async () => {
-      //   // const output = await setup('./assets/single-image.html');
-      // },
-    );
+    it('should perform conversions when a converter is specified', async () => {
+      const output = await setup(
+        './assets/single-image.html',
+        multipleFormatEnabled,
+      );
+
+      expect(output).toMatch(/type="image\/webp"/);
+      expect(output).toMatch(/type="image\/jpeg"/);
+    });
 
     it.todo(
       'should apply transformations and breakpoints for every enabled format',

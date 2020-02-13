@@ -43,6 +43,11 @@ For more info, check out the [issue](https://github.com/quasarframework/quasar/i
   - [Engines](#engines)
 - [Usage](#usage)
 - [Configuration](#configuration)
+  - [Global configuration](#global-configuration)
+  - [Paths](#paths)
+  - [Conversion](#conversion)
+  - [Resolution Switching](#resolution-switching)
+  - [Art Direction](#art-direction)
 - [Caveats & FAQ](#caveats-faq)
 - [Contributing](#contributing)
 - [License](#license)
@@ -218,18 +223,16 @@ Notice that you can use both a viewport width or an [alias](#aliases) to referen
     will be inferred from the default size.
 -->
 <img
-  responsive
-  responsive-ad="699_(ratio=3:2,size=1.0);md_(path=./custom_example.jpg)"
+  responsive="size=1.0"
+  responsive-ad="ratio=3:2{699};path=./custom_example.jpg{md}"
   src="my-little-francisco.jpg"
 />
 <!--
   Ignore all default transformations and only apply the one specified.
-  `ratio` has not been specified and will be inferred from the default ratio.
 -->
 <img
-  responsive
   responsive-ad-ignore
-  responsive-ad="1023_(size=0.5)"
+  responsive-ad="ratio=2:3{1023}"
   src="my-little-kappa.jpg"
 />
 <!-- Ignore only 'xs' and '1500' transformations, apply all other default ones -->
@@ -248,18 +251,23 @@ You can check out the default configuration [here](defaults.ts).
 ```typescript
 // Full configuration, you won't ever need all this options
 const fullOptionsExample: ResponsiveImageLoaderConfig = {
-  conversion: {
-    paths: {
-      outputDir: '/images/',
-      aliases: {
-        '@randomjapp': 'src',
-        /* ... */
-      },
+  defaultSize: 1.0,
+  viewportAliases: {
+    xs: '699', // 0-699
+    md: '1439', // 700-1439
+  },
+  paths: {
+    outputDir: '/images/',
+    aliases: {
+      '@randomjapp': 'src',
+      /* ... */
     },
+  },
+  conversion: {
     converter: 'sharp',
     enabledFormats: {
       webp: true,
-      jpeg: true,
+      jpg: true,
     },
   },
   resolutionSwitching: {
@@ -273,23 +281,23 @@ const fullOptionsExample: ResponsiveImageLoaderConfig = {
   },
   artDirection: {
     transformer: 'thumbor',
-    aliases: {
-      xs: '699', // 0-699
-      md: '1439', // 700-1439
-    },
-    defaults: {
-      ratio: 'original',
-      size: 1.0,
-      transformations: {
-        xs: { ratio: '4:3' },
-        md: { ratio: '2:3', size: 0.5 },
-      },
+    defaultRatio: 'original',
+    defaultTransformations: {
+      xs: { ratio: '4:3' },
+      md: { ratio: '2:3', size: 0.5 },
     },
   },
 };
 
 // Example of a typical configuration, if using art direction
 const options: DeepPartial<ResponsiveImageLoaderConfig> = {
+  viewportAliases: {
+    xs: '699', // 0-699
+    sm: '1023', // 700-1023
+    md: '1439', // 1201-1439
+    lg: '1919', // 1440-1919
+    xl: '3400', // 1920-3400
+  },
   paths: {
     outputDir: '/img/',
     aliases: {
@@ -298,25 +306,41 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
   },
   artDirection: {
     transformer: 'thumbor',
-    aliases: {
-      xs: '699', // 0-699
-      sm: '1023', // 700-1023
-      md: '1439', // 1201-1439
-      lg: '1919', // 1440-1919
-      xl: '3400', // 1920-3400
-    },
-    defaults: {
-      transformations: {
-        xs: { ratio: '4:3' },
-        sm: { ratio: '2:1' },
-        md: { ratio: '2:3', size: 0.5 },
-        lg: { ratio: '16:9', size: 0.5 },
-        xl: { ratio: '21:9', size: 0.5 },
-      },
+    defaultTransformations: {
+      xs: { ratio: '4:3' },
+      sm: { ratio: '2:1' },
+      md: { ratio: '2:3' },
+      lg: { ratio: '16:9' },
+      xl: { ratio: '21:9' },
     },
   },
 };
 ```
+
+### <span id="global-configuration"></span> Global configuration
+
+#### <span id="aliases"></span>`viewportAliases` (default: {})
+
+Maps of aliases to viewport widths which is used when specifying different sizes for resolution switching or when referencing a transformation.
+
+```typescript
+const opts = {
+  viewportAliases: {
+    xs: '699', // 0-699
+    sm: '1023', // 700-1023
+    md: '1439', // 1201-1439
+    lg: '1919', // 1440-1919
+    xl: '3400', // 1920-3400
+  },
+};
+```
+
+#### `defaultSize` (default: 1.0);
+
+Will be used when applying transformations or creating resolution switching breakpoints.
+If provided as a percentage (`size <= 1.00`) it's considered as the width size multiplier with respect to the maxViewport.
+If provided as a number bigger than `300` it's considered as the width in pixels.
+Value is capped to `0.10` on lower bound.
 
 ### <span id="paths"></span> Paths
 
@@ -376,16 +400,16 @@ const conversionAdapter: ConversionAdapter = function(
 const opt = { converter: conversionAdapter };
 ```
 
-#### `enabledFormats` (default: jpeg and webp enabled)
+#### `enabledFormats` (default: jpg and webp enabled)
 
-Keys of this object represents available formats (`jpeg` or `webp`), while their value represent their enabled status.
+Keys of this object represents available formats (`jpg` or `webp`), while their value represent their enabled status.
 
 ```typescript
 // Only serve webp formats
-const opt = { enabledFormats: { webp: true, jpeg: false } };
+const opt = { enabledFormats: { webp: true, jpg: false } };
 ```
 
-Source will be ordered by format efficiency: `webp` > `jpeg`
+Source will be ordered by format efficiency: `webp` > `jpg`
 
 ### <span id="resolution-switching"></span> Resolution switching
 
@@ -474,31 +498,9 @@ const transformationAdapter: TransformationAdapter = function(
 const opt = { transformer: transformationAdapter };
 ```
 
-#### `aliases` (default: {})
-
-Maps of aliases to viewport widths which can be used when referencing a transformation.
-
-```typescript
-const opts = {
-  aliases: {
-    xs: '699', // 0-699
-    sm: '1023', // 700-1023
-    md: '1439', // 1201-1439
-    lg: '1919', // 1440-1919
-    xl: '3400', // 1920-3400
-  },
-};
-```
-
 #### `defaultRatio` (default: 'original');
 
 The ratio which will be used when applying transformations, if not explicitly provided.
-
-#### `defaultSize` (default: 1.0);
-
-The width size multiplier which will be used when applying transformations, if not explicitly provided.
-It should be a percentage number greater than `0.10` and lesser or equal to `1.00`.
-Value is capped to `0.10` on lower bound and `1.00` on upper bound.
 
 #### `defaultTransformations` (default: {});
 
@@ -509,9 +511,9 @@ const opts = {
   defaultTransformations: {
     xs: { ratio: '4:3' },
     sm: { ratio: '2:1' },
-    md: { ratio: '2:3', size: 0.5 },
-    lg: { ratio: '16:9', size: 0.5 },
-    xl: { ratio: '21:9', size: 0.5 },
+    md: { ratio: '2:3' },
+    lg: { ratio: '16:9' },
+    xl: { ratio: '21:9' },
   },
 };
 ```
@@ -622,12 +624,12 @@ Conversion and resolution-switching are enabled by default.
 If you want to disable them globally, set `conversion.converter` and/or `resolutionSwitching.resizer` to `null` into the loader options.
 Currently there is no way to disable them on a per-image basis.
 
-### Which default value should I use for `size`?
+### Which default value should I use for `defaultSize`?
 
-`defaultSize`, which is an option of art direction configuration, will be used also for resolution switching in some particular edge cases which need a fallback image:
+`defaultSize`, which is a global configuration option, will be used both for art direction and resolution switching. In the latter case, it is used in particular when:
 
-- if a breakpoint is generated after the last art direction source;
-- if there are no art direction sources at all.
+- a breakpoint is generated after the last art direction source;
+- there are no art direction sources at all.
 
 Because of this, you should set `defaultSize` to be the one of the image on the biggest screen possible.
 

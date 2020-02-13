@@ -6,27 +6,27 @@ import {
   isNull,
   isUndefined,
   map,
-  mapKeys,
-  max,
+  mapValues,
   merge,
-  min,
   omit,
+  union,
 } from 'lodash';
-import { DeepRequired, Dictionary } from 'ts-essentials';
+import { Dictionary } from 'ts-essentials';
 import { loader } from 'webpack';
-import { AtLeastOne, deepFreeze } from './helpers';
-import { BaseResponsiveImage, BaseSource, generateUri } from './models';
+import {
+  BaseResponsiveImage,
+  BaseSource,
+  generateUri,
+  resolveAliases,
+  ViewportAliasesMap,
+} from './base';
+import { deepFreeze } from './helpers';
 import { ResponsiveImage } from './parsing';
 import { thumborTransformer } from './transformers/thumbor';
 import {
   TransformationAdapter,
   TransformationAdapterPresets,
 } from './transformers/transformers';
-
-export function capSize(value: number): number {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return max([min([value, 1.0])!, 0.1])!;
-}
 
 interface BaseTransformationDescriptor {
   maxViewport: number;
@@ -52,12 +52,14 @@ export function isCustomTransformation(
   return has(transformation, 'path');
 }
 
-type Transformation =
-  | { path: string; size?: number }
-  | AtLeastOne<{ ratio: string; size: number }>;
+type Transformation = { path: string } | { ratio: string };
 
 interface TransformationMap {
   [index: string]: Transformation;
+}
+
+interface TransformationWithSizeMap {
+  [index: string]: Transformation & { size: number };
 }
 
 interface TransformationInlineOptions {
@@ -69,12 +71,12 @@ export type TransformationSource = BaseSource & {
   maxViewport: number;
 } & Transformation;
 
-export interface TransformationResponsiveImage extends BaseResponsiveImage {
+export type TransformationResponsiveImage = BaseResponsiveImage & {
   options: {
     inlineArtDirection: TransformationInlineOptions;
   };
   sources: (BaseSource | TransformationSource)[];
-}
+};
 
 export function isTransformationResponsiveImage(
   responsiveImage: ResponsiveImage,
@@ -107,41 +109,25 @@ export function byIncreasingMaxViewport(
 
 export function decodeTransformation(
   imagePath: string,
-  encodedTransformations: string,
+  // Must have a default value because there will always be only one of them
+  {
+    path: pathOptions = {},
+    ratio: ratioOptions = {},
+  }: Dictionary<Dictionary<string>>,
 ): TransformationMap {
+  const viewports = union(Object.keys(pathOptions), Object.keys(ratioOptions));
+
   const transformations: TransformationMap = {};
 
-  // TODO: check well-formness of encoded transformations via regexp
-  // TODO: eventually extract it with the same RegEx
-
-  for (const encodedTransformation of encodedTransformations.split(';')) {
-    const [name, encodedOptions] = encodedTransformation.split('_');
-
-    const optionsMap = encodedOptions
-      .slice(1, encodedOptions.length - 1)
-      .split(',')
-      .reduce((previous, current) => {
-        const [optionName, optionValue] = current.split('=');
-        previous[optionName] = optionValue;
-        return previous;
-      }, {} as Dictionary<string>);
-
-    const optionsKeys = Object.keys(optionsMap);
-
-    // Converts size to number
-    const size = !isUndefined(optionsMap['size'])
-      ? Number(optionsMap['size'])
-      : undefined;
+  for (const viewport of viewports) {
     // Custom transformation take precedence on other options
-    if (optionsKeys.includes('path')) {
-      transformations[name] = {
-        path: optionsMap['path'],
-        size,
+    if (!isUndefined(pathOptions[viewport])) {
+      transformations[viewport] = {
+        path: pathOptions[viewport],
       };
-    } else if (optionsKeys.includes('ratio') || optionsKeys.includes('size')) {
-      transformations[name] = {
-        ratio: optionsMap['ratio'],
-        size,
+    } else if (!isUndefined(ratioOptions[viewport])) {
+      transformations[viewport] = {
+        ratio: ratioOptions[viewport],
       };
     } else {
       throw new Error(
@@ -153,31 +139,14 @@ export function decodeTransformation(
   return transformations;
 }
 
-interface TransformationAliasesMap {
-  [index: string]: string;
-}
-
 export interface TransformationConfig {
   transformer: TransformationAdapterPresets | TransformationAdapter | null;
-  aliases: TransformationAliasesMap;
+  // TODO: remove global defaultRatio
   defaultRatio: string;
-  defaultSize: number;
   defaultTransformations: TransformationMap;
 }
 
 const MAX_VIEWPORT_PATTERN = /^(\d+)$/;
-
-function resolveAliases(
-  transformations: TransformationMap,
-  aliases: TransformationAliasesMap,
-): TransformationMap {
-  return mapKeys(transformations, (_, name) => {
-    const nameWithoutAliases = isUndefined(aliases[name])
-      ? name
-      : aliases[name];
-    return nameWithoutAliases;
-  });
-}
 
 function validateTransformationName(name: string): void {
   if (!MAX_VIEWPORT_PATTERN.test(name)) {
@@ -188,7 +157,7 @@ function validateTransformationName(name: string): void {
 }
 
 function generateDescriptors(
-  transformations: DeepRequired<TransformationMap>,
+  transformations: TransformationWithSizeMap,
 ): TransformationDescriptor[] {
   return map(transformations, (transformation, name) => {
     // We only need capturing groups, full match element is dropped
@@ -206,13 +175,9 @@ export function normalizeTransformations(
     inlineTransformations,
     transformationsToIgnore,
   }: TransformationInlineOptions,
-  {
-    aliases,
-    defaultRatio,
-    defaultSize,
-    defaultTransformations,
-    transformer,
-  }: TransformationConfig,
+  { defaultRatio, defaultTransformations, transformer }: TransformationConfig,
+  sizes: Dictionary<number>,
+  viewportAliases: ViewportAliasesMap,
 ): TransformationDescriptor[] {
   if (isNull(transformer)) {
     return [];
@@ -227,8 +192,8 @@ export function normalizeTransformations(
 
   const transformations = merge(
     {},
-    resolveAliases(filteredDefaultTransformations, aliases),
-    resolveAliases(inlineTransformations, aliases),
+    resolveAliases(filteredDefaultTransformations, viewportAliases),
+    resolveAliases(inlineTransformations, viewportAliases),
   );
 
   const transformationNames = Object.keys(transformations);
@@ -237,19 +202,24 @@ export function normalizeTransformations(
     return [];
   }
 
+  // TODO: take into account ratio default override
   each(transformationNames, validateTransformationName);
-  each(transformations, transformation => {
-    const defaultValues = has(transformation, 'path')
-      ? { size: defaultSize } // With custom transformations
-      : { ratio: defaultRatio, size: defaultSize }; // With processable transformations
-    defaults(transformation, defaultValues);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    transformation.size = capSize(transformation.size!);
-  });
+  const transformationsWithSize = mapValues(
+    transformations,
+    (transformation, name) => {
+      defaults(
+        transformation,
+        !has(transformation, 'path') ? { ratio: defaultRatio } : {},
+      );
 
-  return generateDescriptors(
-    transformations as DeepRequired<TransformationMap>,
+      return {
+        ...transformation,
+        size: sizes[name] ?? sizes.__default,
+      };
+    },
   );
+
+  return generateDescriptors(transformationsWithSize);
 }
 
 export const generateTransformationUri = (

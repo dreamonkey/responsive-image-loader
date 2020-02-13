@@ -16,7 +16,7 @@ import {
   getTempImagesDir,
   SupportedImageFormats,
   getOuputDir,
-} from './models';
+} from './base';
 import { TransformationSource } from './transformation';
 
 const PREFERRED_FORMAT_ORDER: string[] = [
@@ -94,6 +94,7 @@ async function generateFallbackSource(
   this: loader.LoaderContext,
   converter: ConversionAdapter,
   sourcePath: string,
+  size: number,
   format: SupportedImageFormats,
 ): Promise<ConversionSource> {
   const { name } = parse(sourcePath);
@@ -111,6 +112,7 @@ async function generateFallbackSource(
   return {
     path: sourcePath,
     breakpoints: [fallbackBreakpoint],
+    size,
     format,
   };
 }
@@ -187,6 +189,7 @@ export async function convertImage(
           this,
           converter as ConversionAdapter,
           responsiveImage.originalPath,
+          responsiveImage.options.sizes.__default,
           format,
         );
 

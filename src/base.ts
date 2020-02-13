@@ -1,12 +1,22 @@
 import { existsSync, mkdirSync } from 'fs';
 import { getHashDigest } from 'loader-utils';
-import { isUndefined } from 'lodash';
+import { isUndefined, mapKeys } from 'lodash';
 import { join, parse } from 'path';
 import { Dictionary } from 'ts-essentials';
 
-export interface PathsConfig {
+export interface ViewportAliasesMap {
+  [index: string]: string;
+}
+
+interface PathsConfig {
   outputDir: string;
   aliases: Dictionary<string>;
+}
+
+export interface BaseConfig {
+  paths: PathsConfig;
+  viewportAliases: ViewportAliasesMap;
+  defaultSize: number;
 }
 
 let _pathAliases: [string, string][] | undefined;
@@ -29,6 +39,29 @@ export function getOuputDir(): string {
     throw new Error('Path options has not been initialized properly');
   }
   return _outputDir;
+}
+
+function resolveAlias(
+  viewportName: string,
+  aliases: ViewportAliasesMap,
+): string {
+  // TODO: add unit test
+  if (viewportName === '__default') {
+    throw new Error(
+      '"__default" alias is reserved for internal usage, use another name',
+    );
+  }
+
+  return isUndefined(aliases[viewportName])
+    ? viewportName
+    : aliases[viewportName];
+}
+
+export function resolveAliases<T>(
+  viewportMap: Dictionary<T>,
+  aliases: ViewportAliasesMap,
+): Dictionary<T> {
+  return mapKeys(viewportMap, (_, name) => resolveAlias(name, aliases));
 }
 
 const TEMP_DIR = 'dist/temp';
@@ -65,11 +98,17 @@ export interface Breakpoint {
 export interface BaseSource {
   path: string;
   breakpoints: Breakpoint[];
+  size: number;
 }
+
+export type SizesMap = { __default: number } & Dictionary<number>;
 
 export interface BaseResponsiveImage {
   originalPath: string;
   sources: BaseSource[];
+  options: {
+    sizes: SizesMap;
+  };
 }
 
 export function generateUri(

@@ -6,6 +6,8 @@ export const DEFAULT_OPTIONS = deepFreeze<ResponsiveImageLoaderConfig>({
     outputDir: '/',
     aliases: {},
   },
+  defaultSize: 1.0,
+  viewportAliases: {},
   conversion: {
     converter: 'sharp',
     enabledFormats: {
@@ -23,9 +25,7 @@ export const DEFAULT_OPTIONS = deepFreeze<ResponsiveImageLoaderConfig>({
   },
   artDirection: {
     transformer: null,
-    aliases: {},
     defaultRatio: 'original',
-    defaultSize: 1.0,
     defaultTransformations: {},
   },
 });

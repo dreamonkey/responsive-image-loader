@@ -9,13 +9,12 @@ import { DEFAULT_OPTIONS } from './defaults';
 import { enhance, parse, resolveImagePath } from './parsing';
 import { resizeImage } from './resizing';
 import {
-  capSize,
   isCustomTransformation,
   isTransformationResponsiveImage,
   normalizeTransformations,
   transformImage,
 } from './transformation';
-import { setPathsOptions } from './models';
+import { setPathsOptions } from './base';
 
 // `callback` cannot be a lambda function or `this` context won't be bound correcly
 function defineLoader(callback: loader.Loader): loader.Loader {
@@ -36,20 +35,23 @@ export default defineLoader(function(source) {
     name: 'Responsive image loader',
   });
 
-  if (userOptions?.artDirection?.defaultSize) {
-    userOptions.artDirection.defaultSize = capSize(
-      userOptions.artDirection.defaultSize,
-    );
-  }
+  const {
+    paths: pathOptions,
+    defaultSize,
+    viewportAliases,
+    artDirection: artDirectionOptions,
+    resolutionSwitching: resolutionSwitchingOptions,
+    conversion: conversionOptions,
+  } = merge({}, DEFAULT_OPTIONS, userOptions);
 
-  const options = merge({}, DEFAULT_OPTIONS, userOptions);
-
-  setPathsOptions(options.paths);
+  setPathsOptions(pathOptions);
 
   const { sourceWithPlaceholders, parsedImages } = parse(
     this.context,
     this.rootContext,
     source.toString(),
+    defaultSize,
+    viewportAliases,
   );
 
   if (parsedImages.length === 0) {
@@ -72,7 +74,9 @@ export default defineLoader(function(source) {
 
       const transformations = normalizeTransformations(
         responsiveImage.options.inlineArtDirection,
-        options.artDirection,
+        artDirectionOptions,
+        responsiveImage.options.sizes,
+        viewportAliases,
       );
 
       // Normalizes paths of custom transformations
@@ -90,7 +94,7 @@ export default defineLoader(function(source) {
         this,
         responsiveImage.originalPath,
         transformations,
-        options.artDirection.transformer,
+        artDirectionOptions.transformer,
       );
 
       responsiveImage.sources.push(...transformationSources);
@@ -106,8 +110,8 @@ export default defineLoader(function(source) {
           await resizeImage.call(
             this,
             responsiveImage,
-            options.resolutionSwitching,
-            options.artDirection.defaultSize,
+            resolutionSwitchingOptions,
+            defaultSize,
           ),
       ),
     ),
@@ -119,7 +123,7 @@ export default defineLoader(function(source) {
         return await convertImage.call(
           this,
           responsiveImage,
-          options.conversion,
+          conversionOptions,
         );
       }),
     ),

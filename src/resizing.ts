@@ -1,9 +1,9 @@
-import { existsSync, writeFileSync, statSync } from 'fs';
+import { existsSync, statSync, writeFileSync } from 'fs';
 import { isNull, isUndefined, map, times } from 'lodash';
-import { format, parse, join } from 'path';
+import { format, join, parse } from 'path';
 import { loader } from 'webpack';
+import { Breakpoint, generateUri, getTempImagesDir } from './base';
 import { deepFreeze } from './helpers';
-import { Breakpoint, generateUri, getTempImagesDir } from './models';
 import { ResponsiveImage } from './parsing';
 import { ResizingAdapter, ResizingAdapterPresets } from './resizers/resizers';
 import { sharpResizer } from './resizers/sharp';
@@ -87,8 +87,7 @@ function generateIntervalDelimiters(
     .sort(byIncreasingMaxViewport)
     .map(({ path, maxViewport, size }) => ({
       path,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      size: size!,
+      size,
       viewport: maxViewport,
     }));
 
@@ -215,7 +214,7 @@ async function generateBreakpoints(
     for (let index = 1; index < imagesSizes.length; index++) {
       const previousSize = imagesSizes[index - 1];
       const currentSize = imagesSizes[index];
-      if (currentSize - previousSize < minStepSize) {
+      if (currentSize - previousSize < minStepSize * 1000) {
         // Difference in sizes between breakpoints are too narrow
         // We bubble up the breakpoint to next interval range, if there is one,
         //  or just drop it, if current interval is the last one

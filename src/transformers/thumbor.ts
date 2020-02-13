@@ -4,7 +4,7 @@ import { map } from 'lodash';
 import { join, parse } from 'path';
 import request from 'request';
 import { loader } from 'webpack';
-import { getTempImagesDir } from '../models';
+import { getTempImagesDir } from '../base';
 import {
   generateTransformationUri,
   isCustomTransformation,

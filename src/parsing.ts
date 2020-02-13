@@ -1,8 +1,15 @@
-import { isNull, isUndefined } from 'lodash';
+import { defaults, isNull, isUndefined, mapValues, max } from 'lodash';
 import { lookup } from 'mime-types';
 import { resolve } from 'path';
+import { Dictionary } from 'ts-essentials';
+import {
+  BaseResponsiveImage,
+  Breakpoint,
+  getPathAliases,
+  resolveAliases,
+  SizesMap,
+} from './base';
 import { byMostEfficientFormat, ConversionResponsiveImage } from './conversion';
-import { BaseResponsiveImage, Breakpoint, getPathAliases } from './models';
 import { byIncreasingWidth } from './resizing';
 import {
   byIncreasingMaxViewport,
@@ -16,7 +23,8 @@ export type ResponsiveImage =
   | TransformationResponsiveImage;
 
 const IMAGES_PATTERN = /<img.*?\/>/gs;
-const ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
+const ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
+const OPTION_PATTERN = /([^\s{]+)(?:{([\w|]+)})?/;
 // For all subsequent patterns, only the first match is taken into account
 const CLASS_PATTERN = /class="([^"]+)"/;
 const IMG_CLASS_PATTERN = /responsive-img-class(?:="([^"]+)")?/;
@@ -44,6 +52,68 @@ function resolvePathAliases(
   return undefined;
 }
 
+function parseProperties(content: string): Dictionary<Dictionary<string>> {
+  const propertiesMap: Dictionary<Dictionary<string>> = {};
+
+  for (const property of content.split(';')) {
+    const [name, options] = property.split('=');
+    const parsedOptions = options.split(',');
+
+    const viewportsMap: Dictionary<string> = {};
+
+    for (const option of parsedOptions) {
+      const optionResult = OPTION_PATTERN.exec(option);
+
+      if (isNull(optionResult)) {
+        throw new Error(`Option ${option} is malformed`);
+      }
+
+      const [, value, viewports] = optionResult;
+
+      // If no viewports are specified, the value is marked to override the global default
+      // TODO: mention that specifying "__default" is the same as omitting it
+      if (isUndefined(viewports)) {
+        viewportsMap.__default = value;
+      } else {
+        const parsedViewports = viewports.split('|');
+
+        for (const viewport of parsedViewports) {
+          viewportsMap[viewport] = value;
+        }
+      }
+    }
+
+    propertiesMap[name] = viewportsMap;
+  }
+
+  return propertiesMap;
+}
+
+function parseSizeProperty(
+  responsiveOptions: string,
+  defaultSize: number,
+  viewportAliases: Dictionary<string>,
+): SizesMap {
+  const sizes = !isUndefined(responsiveOptions)
+    ? mapValues(parseProperties(responsiveOptions).size, Number)
+    : {};
+
+  // If no default size has been set via inline options, we add the global default size
+  // We need to resolve aliases because sizes will be picked in multiple modules
+  //   based on their resolved aliases name
+  const sizesWithoutAliases = defaults(resolveAliases(sizes, viewportAliases), {
+    __default: defaultSize,
+  });
+
+  return mapValues(
+    sizesWithoutAliases as SizesMap,
+    size =>
+      // Caps size to a given lower bound
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      max([size, 0.1])!,
+  );
+}
+
 // TODO: manage webpack aliases automatically
 export function resolveImagePath(
   rootContext: string,
@@ -61,6 +131,8 @@ export function parse(
   context: string,
   rootContext: string,
   source: string,
+  defaultSize: number,
+  viewportAliases: Dictionary<string>,
 ): {
   sourceWithPlaceholders: string;
   parsedImages: ResponsiveImage[];
@@ -76,7 +148,7 @@ export function parse(
       continue;
     }
 
-    const [, imagePath] = attributesMatches;
+    const [, responsiveOptions, imagePath] = attributesMatches;
 
     const resolvedPath = resolveImagePath(rootContext, context, imagePath);
 
@@ -85,6 +157,13 @@ export function parse(
     const responsiveImage: ResponsiveImage = {
       originalPath: resolvedPath,
       sources: [],
+      options: {
+        sizes: parseSizeProperty(
+          responsiveOptions,
+          defaultSize,
+          viewportAliases,
+        ),
+      },
     };
 
     const artDirectionMatches = ART_DIRECTION_ATTRIBUTE_PATTERN.exec(imageTag);
@@ -95,18 +174,19 @@ export function parse(
         imageTag,
       );
 
-      (responsiveImage as TransformationResponsiveImage).options = {
+      ((responsiveImage as unknown) as TransformationResponsiveImage).options.inlineArtDirection = {
         // Even if typings doesn't reflect so, capturing groups with no match returns undefined
-        inlineArtDirection: {
-          inlineTransformations: !isUndefined(encodedTransformations)
-            ? decodeTransformation(imagePath, encodedTransformations)
-            : {},
-          transformationsToIgnore: isNull(artDirectionIgnoreMatches)
-            ? false
-            : isUndefined(artDirectionIgnoreMatches[1])
-            ? true
-            : artDirectionIgnoreMatches[1].split('|'),
-        },
+        inlineTransformations: !isUndefined(encodedTransformations)
+          ? decodeTransformation(
+              imagePath,
+              parseProperties(encodedTransformations),
+            )
+          : {},
+        transformationsToIgnore: isNull(artDirectionIgnoreMatches)
+          ? false
+          : isUndefined(artDirectionIgnoreMatches[1])
+          ? true
+          : artDirectionIgnoreMatches[1].split('|'),
       };
     }
 
@@ -174,8 +254,7 @@ export function enhance(
 
         // 'media' attribute must be set before 'srcset' for testing purposes
         if (isTransformationSource(source)) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          enhancedImage += `sizes="${source.size! * 100}vm" `;
+          enhancedImage += `sizes="${source.size * 100}vm" `;
           enhancedImage += `media="(max-width: ${source.maxViewport}px)" `;
         }
 

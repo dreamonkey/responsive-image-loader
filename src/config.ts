@@ -1,11 +1,10 @@
+import { BaseConfig } from './base';
 import { ConversionConfig } from './conversion';
 import { deepFreeze } from './helpers';
-import { PathsConfig } from './models';
 import { ResizingConfig } from './resizing';
 import { TransformationConfig } from './transformation';
 
-export interface ResponsiveImageLoaderConfig {
-  paths: PathsConfig;
+export interface ResponsiveImageLoaderConfig extends BaseConfig {
   conversion: ConversionConfig;
   artDirection: TransformationConfig;
   resolutionSwitching: ResizingConfig;
@@ -14,6 +13,8 @@ export interface ResponsiveImageLoaderConfig {
 export const OPTIONS_SCHEMA = deepFreeze({
   type: 'object',
   properties: {
+    defaultSize: { type: 'number' },
+    viewportAliases: { type: 'object' },
     paths: {
       type: 'object',
       properties: {
@@ -54,10 +55,9 @@ export const OPTIONS_SCHEMA = deepFreeze({
             { instanceof: 'Function' },
           ],
         },
-        aliases: { type: 'object' },
         defaultRatio: { type: 'string' },
-        defaultSize: { type: 'number' },
         // TODO: add more adherent properties check if possible
+        // TODO: turn it around to put the focus on ratio and path
         defaultTransformations: { type: 'object' },
       },
       additionalProperties: false,
