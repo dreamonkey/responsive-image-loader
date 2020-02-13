@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - Fix: avoid `sizes="NaNvm"` when AD is disabled and RS is enabled
 - Feat: move aliases and size management to global level, change properties syntax

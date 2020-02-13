@@ -59,7 +59,7 @@ Features we'd like to implement, by most-wanted order.
 - [ ] [Add PNG to supported formats](https://github.com/dreamonkey/responsive-image-loader/issues/16)
 - [ ] [Support background-images](https://github.com/dreamonkey/responsive-image-loader/issues/12)
 - [ ] [Define defaults for arbitrary groups of images](https://github.com/dreamonkey/responsive-image-loader/issues/10)
-- [ ] [Support values in pixels for `size` option](https://github.com/dreamonkey/responsive-image-loader/issues/13)
+- [x] [Support values in pixels for `size` option](https://github.com/dreamonkey/responsive-image-loader/issues/13)
 - [ ] [Write more granular unit tests](https://github.com/dreamonkey/responsive-image-loader/issues/17)
 - [ ] [Add TSDocs to public methods](https://github.com/dreamonkey/responsive-image-loader/issues/18)
 - [ ] [Support Cloudinary adapter for converter, transformer and resizer](https://github.com/dreamonkey/responsive-image-loader/issues/15)
