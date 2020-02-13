@@ -301,6 +301,18 @@ export async function resizeImage(
       continue;
     }
 
+    // If the size of the source image for this interval is less
+    //  than 2 times the minimum size difference we know no breakpoints can be put here.
+    // We add its breakpointsCount to the next interval (if any) and move on
+    if (
+      statSync(currentInterval.endDelimiter.path).size <
+      minSizeDifference * 1000 * 2
+    ) {
+      nextInterval &&
+        (nextInterval.breakpointsCount += currentInterval.breakpointsCount);
+      continue;
+    }
+
     const breakpoints = await generateBreakpoints.call(
       this,
       resizer,

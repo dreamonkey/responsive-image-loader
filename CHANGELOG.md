@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Fix: avoid `sizes="NaNvm"` when AD is disabled and RS is enabled
+- Feat: move aliases and size management to global level, change properties syntax
+- Feat: allow size as absolute value in pixels
+- Perf(RS): avoid processing intervals where source images are too small
 
 ## 0.1.5
 
