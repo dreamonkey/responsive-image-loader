@@ -16,14 +16,22 @@ import {
   decodeTransformation,
   isTransformationSource,
   TransformationResponsiveImage,
+  TransformationInlineOptions,
 } from './transformation';
 
 export type ResponsiveImage =
   | BaseResponsiveImage
   | TransformationResponsiveImage;
 
+interface TagDescriptor {
+  tag: string;
+  type: 'background-image' | 'img-tag';
+}
+
 const IMAGES_PATTERN = /<img.*?\/>/gs;
-const ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
+const BACKGROUND_IMAGES_PATTERN = /<[a-z]\w*(?=[^<>]*\sresponsive-bg="\S+").*?>/gis;
+const IMAGES_ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
+const BACKGROUND_IMAGES_ATTRIBUTE_PATTERN = /^<[a-z][\s\S]*(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\sresponsive-bg="(\S+)").*>$/is;
 const OPTION_PATTERN = /([^\s{]+)(?:{([\w|]+)})?/;
 // For all subsequent patterns, only the first match is taken into account
 const CLASS_PATTERN = /class="([^"]+)"/;
@@ -127,6 +135,79 @@ export function resolveImagePath(
   );
 }
 
+function parseImagesTags(source: string): TagDescriptor[] {
+  return (source.match(IMAGES_PATTERN) ?? []).map(tag => ({
+    tag,
+    type: 'img-tag' as const,
+  }));
+}
+
+function parseBackgroundImagesTags(source: string): TagDescriptor[] {
+  return (source.match(BACKGROUND_IMAGES_PATTERN) ?? []).map(tag => ({
+    tag,
+    type: 'background-image' as const,
+  }));
+}
+
+function parseTags(source: string): TagDescriptor[] {
+  return [...parseImagesTags(source), ...parseBackgroundImagesTags(source)];
+}
+
+function parseTagAttributes({
+  tag,
+  type,
+}: TagDescriptor): RegExpExecArray | null {
+  return type === 'img-tag'
+    ? IMAGES_ATTRIBUTES_PATTERN.exec(tag)
+    : BACKGROUND_IMAGES_ATTRIBUTE_PATTERN.exec(tag);
+}
+
+function parseArtDirectionAttributes(
+  tag: string,
+  imagePath: string,
+): TransformationInlineOptions | undefined {
+  const artDirectionMatches = ART_DIRECTION_ATTRIBUTE_PATTERN.exec(tag);
+  if (!isNull(artDirectionMatches)) {
+    const [, encodedTransformations] = artDirectionMatches;
+
+    const artDirectionIgnoreMatches = ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN.exec(
+      tag,
+    );
+
+    return {
+      // Even if typings doesn't reflect so, capturing groups with no match returns undefined
+      inlineTransformations: !isUndefined(encodedTransformations)
+        ? decodeTransformation(
+            imagePath,
+            parseProperties(encodedTransformations),
+          )
+        : {},
+      transformationsToIgnore: isNull(artDirectionIgnoreMatches)
+        ? false
+        : isUndefined(artDirectionIgnoreMatches[1])
+        ? true
+        : artDirectionIgnoreMatches[1].split('|'),
+    };
+  }
+
+  return undefined;
+}
+
+function generateReplacingTag(
+  resolvedPath: string,
+  tag: string,
+  type: string,
+): string {
+  return type === 'img-tag'
+    ? generatePlaceholder(resolvedPath)
+    : // "background-image" doesn't remove the original tag,
+      //  instead it adds a data-* marker and appends the placeholder after it.
+      // This will trigger the generation of the element managing the image selection
+      `${tag.slice(0, -1)} data-responsive-bg>\n${generatePlaceholder(
+        resolvedPath,
+      )}\n`;
+}
+
 export function parse(
   context: string,
   rootContext: string,
@@ -138,21 +219,34 @@ export function parse(
   parsedImages: ResponsiveImage[];
 } {
   const responsiveImages: ResponsiveImage[] = [];
-  // We reduce Buffer to a string using `toString` to be able to apply a RegExp
-  const imageTags = source.match(IMAGES_PATTERN) ?? [];
-  for (const imageTag of imageTags) {
-    const attributesMatches = ATTRIBUTES_PATTERN.exec(imageTag);
+
+  const tagsDescriptors = parseTags(source);
+
+  for (const tagDescriptor of tagsDescriptors) {
+    const attributesMatches = parseTagAttributes(tagDescriptor);
 
     if (isNull(attributesMatches)) {
-      // The tag doesn't have valid "responsive" or "src" attributes
+      // The tag doesn't have valid "responsive" or "src" attributes (for img tags)
+      // OR
+      // The tag doesn't have valid "responsive" or "responsive-bg" attributes (for background image tags)
       continue;
     }
 
+    const { tag, type } = tagDescriptor;
     const [, responsiveOptions, imagePath] = attributesMatches;
 
     const resolvedPath = resolveImagePath(rootContext, context, imagePath);
 
-    imagesMatchesMap[resolvedPath] = imageTag;
+    imagesMatchesMap[resolvedPath] =
+      type === 'img-tag'
+        ? tag
+        : // The image selection helper element is hidden with an inline style
+          // We must call the function providing `event` parameter when inline
+          // We check for `responsiveBgImageHandler` to be available into global scope executing it
+          // This is done to avoid errors when the polyfill script is deferred and/or executed after the first onload event
+          // (this scenario could happen when using pre-rendering)
+          // See https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers#Event_handlers_parameters_this_binding_and_the_return_value
+          `<img src="${imagePath}" style="display:none" class="responsive-bg-holder" onload="typeof responsiveBgImageHandler !== 'undefined' && responsiveBgImageHandler(event)"/>`;
 
     const responsiveImage: ResponsiveImage = {
       originalPath: resolvedPath,
@@ -166,33 +260,18 @@ export function parse(
       },
     };
 
-    const artDirectionMatches = ART_DIRECTION_ATTRIBUTE_PATTERN.exec(imageTag);
-    if (!isNull(artDirectionMatches)) {
-      const [, encodedTransformations] = artDirectionMatches;
+    const artDirectionInlineOptions = parseArtDirectionAttributes(
+      tag,
+      imagePath,
+    );
 
-      const artDirectionIgnoreMatches = ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN.exec(
-        imageTag,
-      );
-
-      ((responsiveImage as unknown) as TransformationResponsiveImage).options.inlineArtDirection = {
-        // Even if typings doesn't reflect so, capturing groups with no match returns undefined
-        inlineTransformations: !isUndefined(encodedTransformations)
-          ? decodeTransformation(
-              imagePath,
-              parseProperties(encodedTransformations),
-            )
-          : {},
-        transformationsToIgnore: isNull(artDirectionIgnoreMatches)
-          ? false
-          : isUndefined(artDirectionIgnoreMatches[1])
-          ? true
-          : artDirectionIgnoreMatches[1].split('|'),
-      };
+    if (!isUndefined(artDirectionInlineOptions)) {
+      ((responsiveImage as unknown) as TransformationResponsiveImage).options.inlineArtDirection = artDirectionInlineOptions;
     }
 
     responsiveImages.push(responsiveImage);
 
-    source = source.replace(imageTag, generatePlaceholder(resolvedPath));
+    source = source.replace(tag, generateReplacingTag(resolvedPath, tag, type));
   }
 
   return { sourceWithPlaceholders: source, parsedImages: responsiveImages };

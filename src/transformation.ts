@@ -62,7 +62,7 @@ interface TransformationWithSizeMap {
   [index: string]: Transformation & { size: number };
 }
 
-interface TransformationInlineOptions {
+export interface TransformationInlineOptions {
   inlineTransformations: TransformationMap;
   transformationsToIgnore: boolean | string[];
 }
