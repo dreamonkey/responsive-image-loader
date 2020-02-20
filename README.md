@@ -25,6 +25,7 @@ We also focused on flexiblity and customizability: conversion, resizing and tran
 We found some notable tools while evaluating if it was worth to create our own package, but none of them combines all the requirements we now offer:
 
 - manages together conversion, resolution switching and art direction, with all their weird interactions;
+- process images both when used via `<img>` tags and `background-image` CSS rules;
 - framework agnostic;
 - operates at build time (did anyone said SSG?);
 - works offline;
@@ -57,7 +58,7 @@ For more info, check out the [issue](https://github.com/quasarframework/quasar/i
 Features we'd like to implement, by most-wanted order.
 
 - [ ] [Add PNG to supported formats](https://github.com/dreamonkey/responsive-image-loader/issues/16)
-- [ ] [Support background-images](https://github.com/dreamonkey/responsive-image-loader/issues/12)
+- [x] [Support background-images](https://github.com/dreamonkey/responsive-image-loader/issues/12)
 - [ ] [Define defaults for arbitrary groups of images](https://github.com/dreamonkey/responsive-image-loader/issues/10)
 - [x] [Support values in pixels for `size` option](https://github.com/dreamonkey/responsive-image-loader/issues/13)
 - [ ] [Write more granular unit tests](https://github.com/dreamonkey/responsive-image-loader/issues/17)
@@ -94,6 +95,20 @@ webpackConf.module.rules.push({
     /* ... */
   },
 });
+```
+
+If you plan to process CSS background images, you should also include the package as you'd do with a [polyfill](https://webpack.js.org/guides/shimming/#loading-polyfills).
+
+```javascript
+webpackConf.entry['responsive-bg-image-handler'] =
+  '@dreamonkey/responsive-image-loader';
+```
+
+```html
+<!--
+NB: `src` attribute value could change dependending on your webpack `output.filename` (https://webpack.js.org/configuration/output/#outputfilename) and `output` configuration, you're not bound to ``
+-->
+<script src="./responsive-bg-image-handler.js">
 ```
 
 #### On Quasar framework
@@ -144,6 +159,8 @@ We also didn't found an elegant solution to abstract most of the transformation 
 That's a lot of limitations, we know, any help with this part of the loader (and support for an equivalent software, even if paid and closed source) will be greatly appreciated.
 
 ## <span id="usage"></span> Usage
+
+### On `<img>` tags
 
 Add `responsive` attribute over an `<img>` component and it will be enhanced with conversion and resolution switching!
 
@@ -243,6 +260,28 @@ Notice that you can use both a viewport width or an [alias](#aliases) to referen
   src="my-little-cuenta.jpg"
 />
 ```
+
+### On `background-image` CSS rules
+
+Add `responsive` and `responsive-bg` attributes on any tag whose `background-image` you want to manage. The latter should be initialized to the path of the source image.
+
+```html
+<div class="enhanced-bg-div" responsive responsive-bg="my-little-calogero.jpg">
+  <p>Hey there, I'm famous</p>
+</div>
+```
+
+All conversion, resolution switching and art direction options apply with the same API as if they were used on an `<img>` tag.
+
+To keep the same GUI both in development and production mode you should add a fallback `background-image` CSS rule (usually with the same value as `responsive-bg` attribute) which conditionally target the element when the loader is not applied. A `data-responsive-bg` attribute is added to every enhanced element for this reason.
+
+```css
+.enhanced-bg-div:not([data-responsive-bg]) {
+  background-image: url(my-little-calogero.jpg);
+}
+```
+
+Adding a fallback without the `:not([data-responsive-bg])` selector will cause the browser to load the un-optimized image anyway, causing harm instead of benefit.
 
 ## <span id="configuration"></span> Configuration
 
@@ -637,7 +676,51 @@ Example: if the image occupies 100% of the viewport width on the maximum support
 
 ### Why doesn't the loader kick in on my images?
 
-The loader won't process the image if `responsive` attribute is missing and if `src` attribute is missing or empty. Also, art direction won't take place if `responsive-ad` is missing.
+The loader won't process the image if `responsive` attribute is missing or if `src` attribute is missing or empty. Also, art direction won't take place if `responsive-ad` is missing.
+
+### The fallback background image is downloaded anyway even when `responsive-bg` is active
+
+You must manually prevent the fallback background-image CSS rule from being applied when the loader kicks in.
+Remember to wrap it into a `:not([data-responsive-bg])` selector!
+
+### My child-referencing CSS selectors break when I use the background-image optimization feature
+
+Due to poor flexibility of [`image-set()`](https://developer.mozilla.org/en-US/docs/Web/CSS/image-set) CSS function (HTML `srcset` attribute counterpart), background images management exploits the same HTML features used for `<img>` tags.
+
+An hidden `<picture>` element, whose purpose is to detect the best image to use, is added as the first child of the enhanced element. This could break CSS cardinality selectors like `:first-child`, `:first-of-type` and `:nth-child`.
+
+The enhanced element `background-image` property is updated via a globally available JavaScript handler every time the `<picture>` inner `<img>` element loads a new image.
+
+```html
+<div class="enhanced-bg-div" responsive responsive-bg="my-little-calogero.jpg">
+  <p>Hey there, I'm famous</p>
+</div>
+
+<!-- WILL BECOME -->
+
+<div
+  class="enhanced-bg-div"
+  responsive
+  responsive-bg="my-little-calogero.jpg"
+  data-responsive-bg
+>
+  <picture class="responsive-bg-holder">
+    <source />
+    <source />
+    <!-- ... -->
+    <img
+      class="responsive-bg-holder"
+      responsive
+      src="my-little-calogero.jpg"
+      style="display: none"
+      onload="**handler invocation**"
+    />
+  </picture>
+  <p>Hey there, I'm famous</p>
+</div>
+```
+
+```
 
 ## <span id="contributing"></span> Contributing
 
@@ -650,3 +733,4 @@ If you discover any security related issues, please email security@dreamonkey.co
 ## <span id="license"></span> License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+```
