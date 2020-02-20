@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- Feat: support `background-image` optimization
+
 ## 0.2.0
 
 - Fix: avoid `sizes="NaNvm"` when AD is disabled and RS is enabled
