@@ -28,7 +28,8 @@
   "files": [
     "dist/src"
   ],
-  "main": "dist/src/responsive-image-loader.js",
+  "loader": "dist/src/responsive-image-loader.js",
+  "main": "dist/src/background-image-handler.js",
   "peerDependencies": {
     "webpack": "^4.0.0 || ^5.0.0"
   },
