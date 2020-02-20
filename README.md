@@ -138,6 +138,15 @@ webpackConf.module.rules.push({
 It is not possible to specify only `test: /\.vue$/` because Vue templates are actually [processed many times](https://github.com/vuejs/vue-loader/issues/1164#issuecomment-370947737) (one for general file plus one per each used tag) and this would break the loader workflow.
 A caching mechanism (as suggested by Vue creator in this cases) won't work efficiently and will break framework-agnosticism.
 
+If you plan to process CSS background images, you should also include the package as you'd do with a [polyfill](https://webpack.js.org/guides/shimming/#loading-polyfills).
+
+```javascript
+webpackConf.entry['responsive-bg-image-handler'] =
+  '@dreamonkey/responsive-image-loader';
+```
+
+You don't need to manually include it via a `script` tag as Quasar already does it automatically for every `entry` property.
+
 ### <span id="engines"></span> Engines
 
 Conversion, art direction and resolution switching are powered via an adapter by a fully decoupled and swappable engine.

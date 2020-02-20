@@ -11,5 +11,10 @@
     "target": "es6",
     "module": "commonjs"
   },
-  "exclude": ["dist"]
+  "exclude": [
+    "dist",
+    // If it's copied over to `dist` folder, subsequent `build` scripts
+    //  will use generated file instead of the main one generating errors
+    "webpack.config.js"
+  ]
 }
