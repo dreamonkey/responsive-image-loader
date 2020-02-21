@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Feat: make `background-image` optimization support web components slots systems
+
 ## 0.3.0
 
 - Feat: support `background-image` optimization
