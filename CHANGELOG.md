@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Chore: update deps
+
 ## 0.3.1
 
 - Feat: make `background-image` optimization support web components slots systems
