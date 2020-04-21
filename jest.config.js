@@ -5,6 +5,7 @@ module.exports = {
   globals: {
     __DEV__: true,
   },
+  setupFilesAfterEnv: ['./test/jest.setup.js'],
   // Jest assumes by default we are testing for a browser
   // See https://github.com/facebook/jest/issues/1909#issuecomment-252981401
   testEnvironment: 'node',
