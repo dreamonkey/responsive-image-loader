@@ -1,7 +1,6 @@
-import fileType from 'file-type';
+import { fromFile } from 'file-type';
 import { isNull, isUndefined } from 'lodash';
 import { format as formatPath, join, parse } from 'path';
-import readChunk from 'read-chunk';
 import { loader } from 'webpack';
 import {
   ConversionAdapter,
@@ -54,9 +53,10 @@ function isFormatSupported(format: string): format is SupportedImageFormats {
 }
 
 // Detect extension by magic numbers instead of path extension (which can lie)
-function detectSourceType(imagePath: string): SupportedImageFormats {
-  const buffer = readChunk.sync(imagePath, 0, fileType.minimumBytes);
-  const type = fileType(buffer)?.ext;
+async function detectSourceType(
+  imagePath: string,
+): Promise<SupportedImageFormats> {
+  const type = (await fromFile(imagePath))?.ext;
 
   if (isUndefined(type)) {
     throw new Error(`Type of ${imagePath} could not be detected`);
@@ -135,10 +135,12 @@ export async function convertImage(
   { converter, enabledFormats }: ConversionConfig,
 ): Promise<ConversionResponsiveImage> {
   if (isNull(converter)) {
-    responsiveImage.sources = responsiveImage.sources.map(source => ({
-      ...source,
-      format: detectSourceType(source.path),
-    }));
+    responsiveImage.sources = await Promise.all(
+      responsiveImage.sources.map(async (source) => ({
+        ...source,
+        format: await detectSourceType(source.path),
+      })),
+    );
 
     return Promise.resolve(responsiveImage as ConversionResponsiveImage);
   }
@@ -153,7 +155,7 @@ export async function convertImage(
 
   responsiveImage.sources = (
     await Promise.all(
-      availableFormats.map(async format => {
+      availableFormats.map(async (format) => {
         // Original image should processed like all others,
         //  in case some optimizations are applied by the converter
         // TODO: it's not clear why `converter` ignores previous type-narrowing code
@@ -161,7 +163,7 @@ export async function convertImage(
         //  forcing us to cast it
 
         const convertedSources = await Promise.all(
-          responsiveImage.sources.map(async source => {
+          responsiveImage.sources.map(async (source) => {
             const convertedBreakpoints = await Promise.all(
               source.breakpoints.map(async ({ path: sourcePath, uri }) => {
                 return await (converter as ConversionAdapter).call(
