@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.3
+
+- Chore: update deps
+- Fix: correctly throw when property options are malformed
+- Docs: clarify usage of properties with multiple options and viewports
+- Tests(parsing): cover properties/options/viewports parsing
+
 ## 0.3.2
 
 - Chore: update deps
