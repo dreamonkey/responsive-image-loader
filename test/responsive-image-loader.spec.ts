@@ -16,13 +16,12 @@ async function setup(
 
   existsOrCreateDirectory(TEMP_DIR);
 
-  const hash = createHash('md5')
-    .update(moduleData)
-    .digest('hex');
+  const hash = createHash('md5').update(moduleData).digest('hex');
   const tempFileName = join(TEMP_DIR, `${hash}.js`);
   const path = resolve(__dirname, '..', tempFileName);
   writeFileSync(path, moduleData);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const sourceWithEscapedQuotes = (await import(path)).default as string;
 
   return sourceWithEscapedQuotes.replace(/\\"/g, '"');

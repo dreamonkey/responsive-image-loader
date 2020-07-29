@@ -114,7 +114,7 @@ function generateIntervalDelimiters(
           // We need minDelimiter image size to be 0 when checked later on,
           //  so we provide a path to an empty image
           path: getEmptyImagePath(),
-          size: sizes[maxViewport + ''] ?? sizes.__default,
+          size: sizes[`${maxViewport}`] ?? sizes.__default,
         }),
     viewport: minViewport,
   };
@@ -124,7 +124,7 @@ function generateIntervalDelimiters(
       ? lastDelimiterAfterMaxViewport
       : {
           path: originalPath,
-          size: sizes[maxViewport + ''] ?? sizes.__default,
+          size: sizes[`${maxViewport}`] ?? sizes.__default,
         }),
     viewport: maxViewport,
   };
@@ -200,11 +200,11 @@ async function generateBreakpoints(
     );
     const breakpointViewports = times(
       breakpointsCount,
-      index => startDelimiter.width + breakpointUnit * (index + 1),
+      (index) => startDelimiter.width + breakpointUnit * (index + 1),
     );
 
     breakpoints = await Promise.all(
-      breakpointViewports.map(breakpoint =>
+      breakpointViewports.map((breakpoint) =>
         resizer.call(
           this,
           endDelimiter.path,
@@ -218,7 +218,7 @@ async function generateBreakpoints(
     );
 
     const imagesSizes = [startDelimiter, ...breakpoints, endDelimiter].map(
-      breakpointOrDelimiter => statSync(breakpointOrDelimiter.path).size,
+      (breakpointOrDelimiter) => statSync(breakpointOrDelimiter.path).size,
     );
 
     allStepsAreWideEnough = true;
@@ -273,12 +273,12 @@ export async function resizeImage(
     resizer = presetResizers[resizer];
   }
 
-  const artDirectionSources = image.sources.filter(source =>
+  const artDirectionSources = image.sources.filter((source) =>
     isTransformationSource(source),
   ) as TransformationSource[];
 
   const viewportToSourceMap = new Map<number, TransformationSource>(
-    map(artDirectionSources, source => [source.maxViewport, source]),
+    map(artDirectionSources, (source) => [source.maxViewport, source]),
   );
 
   const intervalDelimiters = generateIntervalDelimiters(

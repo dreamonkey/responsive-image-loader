@@ -12,9 +12,9 @@ export function deepFreeze<T>(object: T): DeepReadonly<T> {
   /* recursively freeze properties before freezing self */
   for (const name of propNames) {
     // TODO: check TS problems with indexing object
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
     const value = (object as any)[name];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
     (object as any)[name] =
       value && typeof value === 'object' ? deepFreeze(value) : value;
   }
