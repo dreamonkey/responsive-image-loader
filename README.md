@@ -234,6 +234,13 @@ If you add either `responsive-img-class` or `responsive-picture-class` without a
 You can opt-in to art direction adding `responsive-ad` attribute. You can also provide an encoded inline transformation as the attribute value which will be merged on top of [default transformations](#default-transformations). \
 This allow to overwrite size or ratio of an existing transformation on a single image.
 
+The syntax for inline transformations is:
+
+- it can contain one or more properties;
+- each property definition starts with the property name (`ratio`, `path`, `size`, etc.) followed by an equality sign (`=`) and one or more options separated by a comma (`,`);
+- every option is composed by a value and, optionally, one or more viewports to which it must be applied;
+- wiewports must be enclosed into curly braces (`{}`) and separated by a pipe char (`|`).
+
 Adding a `responsive-ad-ignore` attribute without value will disable all default transformations, while providing a pipe-separated list of transformation names will disable only the selected ones.
 
 Notice that you can use both a viewport width or an [alias](#aliases) to reference a transformation in the value of both attributes.
@@ -251,6 +258,16 @@ Notice that you can use both a viewport width or an [alias](#aliases) to referen
 <img
   responsive="size=0.5{699}"
   responsive-ad="ratio=3:2{699};path=./custom_example.jpg{md}"
+  src="my-little-francisco.jpg"
+/>
+<!--
+  Define inline transformations:
+  - on `xs` and `md` viewports the `size` is `0.5`, while it's `0.33` on `sm` one. All other viewports will use the default size.
+  - on `xs` and `md` viewports the `ratio` is `1:2`, while it's `3:2` on `sm` one. All other viewports will use the default ratio (which is the original image ratio).
+-->
+<img
+  responsive="size=0.33{sm},0.5{xs|md}"
+  responsive-ad="ratio=3:2{sm},1:2{xs|md}"
   src="my-little-francisco.jpg"
 />
 <!--
@@ -342,7 +359,7 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
   viewportAliases: {
     xs: '699', // 0-699
     sm: '1023', // 700-1023
-    md: '1439', // 1201-1439
+    md: '1439', // 1024-1439
     lg: '1919', // 1440-1919
     xl: '3400', // 1920-3400
   },
@@ -429,14 +446,14 @@ const opt = { converter: null };
 
 // Provide custom adapter, **never use a lambda function**
 const opt = {
-  converter: function(sourcePath, destinationPath, uriWithoutHash, format) {
+  converter: function (sourcePath, destinationPath, uriWithoutHash, format) {
     /**/
     return breakpoint;
   },
 };
 
 // Provide custom adapter defined elsewere, **never use a lambda function**
-const conversionAdapter: ConversionAdapter = function(
+const conversionAdapter: ConversionAdapter = function (
   sourcePath,
   destinationPath,
   uriWithoutHash,
@@ -478,14 +495,14 @@ const opt = { resizer: null };
 
 // Provide custom adapter, **never use a lambda function**
 const opt = {
-  resizer: function(sourcePath, destinationPath, breakpointWidth) {
+  resizer: function (sourcePath, destinationPath, breakpointWidth) {
     /**/
     return breakpoint;
   },
 };
 
 // Provide custom adapter defined elsewere, **never use a lambda function**
-const resizingAdapter: ResizingAdapter = function(
+const resizingAdapter: ResizingAdapter = function (
   sourcePath,
   destinationPath,
   breakpointWidth,
@@ -529,14 +546,14 @@ const opt = { transformer: null };
 
 // Provide custom adapter, **never use a lambda function**
 const opt = {
-  transformer: function(imagePath, transformations) {
+  transformer: function (imagePath, transformations) {
     /**/
     return transformationSource;
   },
 };
 
 // Provide custom adapter defined elsewere, **never use a lambda function**
-const transformationAdapter: TransformationAdapter = function(
+const transformationAdapter: TransformationAdapter = function (
   imagePath,
   transformations,
 ) {
