@@ -32,7 +32,7 @@ const IMAGES_PATTERN = /<img.*?\/>/gs;
 const BACKGROUND_IMAGES_PATTERN = /<[a-z]\w*(?=[^<>]*\sresponsive-bg="\S+").*?>/gis;
 const IMAGES_ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
 const BACKGROUND_IMAGES_ATTRIBUTE_PATTERN = /^<[a-z][\s\S]*(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\sresponsive-bg="(\S+)").*>$/is;
-const OPTION_PATTERN = /([^\s{]+)(?:{([\w|]+)})?/;
+const OPTION_PATTERN = /^([^\s{]+)(?:{([\w|]+)})?$/;
 // For all subsequent patterns, only the first match is taken into account
 const CLASS_PATTERN = /class="([^"]+)"/;
 const IMG_CLASS_PATTERN = /responsive-img-class(?:="([^"]+)")?/;
@@ -60,7 +60,9 @@ function resolvePathAliases(
   return undefined;
 }
 
-function parseProperties(content: string): Dictionary<Dictionary<string>> {
+export function parseProperties(
+  content: string,
+): Dictionary<Dictionary<string>> {
   const propertiesMap: Dictionary<Dictionary<string>> = {};
 
   for (const property of content.split(';')) {
@@ -115,7 +117,7 @@ function parseSizeProperty(
 
   return mapValues(
     sizesWithoutAliases as SizesMap,
-    size =>
+    (size) =>
       // Caps size to a given lower bound
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       max([size, 0.1])!,
@@ -136,14 +138,14 @@ export function resolveImagePath(
 }
 
 function parseImagesTags(source: string): TagDescriptor[] {
-  return (source.match(IMAGES_PATTERN) ?? []).map(tag => ({
+  return (source.match(IMAGES_PATTERN) ?? []).map((tag) => ({
     tag,
     type: 'img-tag' as const,
   }));
 }
 
 function parseBackgroundImagesTags(source: string): TagDescriptor[] {
-  return (source.match(BACKGROUND_IMAGES_PATTERN) ?? []).map(tag => ({
+  return (source.match(BACKGROUND_IMAGES_PATTERN) ?? []).map((tag) => ({
     tag,
     type: 'background-image' as const,
   }));
@@ -328,8 +330,16 @@ export function enhance(
       for (const source of sortedSources) {
         const { breakpoints, format } = source;
 
+        const mimeType = lookup(format);
+
+        if (!mimeType) {
+          throw new Error(
+            'Provided format could not be resolved to a mime type',
+          );
+        }
+
         enhancedImage += '<source ';
-        enhancedImage += `type="${lookup(format)}" `;
+        enhancedImage += `type="${mimeType}" `;
 
         // 'media' attribute must be set before 'srcset' for testing purposes
         if (isTransformationSource(source)) {
