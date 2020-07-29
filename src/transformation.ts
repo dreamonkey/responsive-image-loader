@@ -131,7 +131,7 @@ export function decodeTransformation(
       };
     } else {
       throw new Error(
-        `Inline transformation ${name} for image ${imagePath} has no valid options`,
+        `Inline transformation ${viewport} for image ${imagePath} has no valid options`,
       );
     }
   }
