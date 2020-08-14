@@ -1,27 +1,29 @@
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, spawn, exec } from 'child_process';
 import { writeFileSync } from 'fs';
 import { map } from 'lodash';
-import { join, parse } from 'path';
+import { parse, join } from 'path';
 import request from 'request';
 import { loader } from 'webpack';
-import { getTempImagesDir } from '../base';
+import { getTempImagesDir } from '../../base';
 import {
   generateTransformationUri,
   isCustomTransformation,
   TransformationDescriptor,
   TransformationSource,
-} from '../transformation';
-import { TransformationAdapter } from './transformers';
+} from '../../transformation';
+import { TransformationAdapter } from '../transformers';
 
 const THUMBOR_URL = 'http://localhost';
 const THUMBOR_PORT = '8888';
-const THUMBOR_CONFIGURATION_PATH = join(__dirname, 'thumbor.conf');
-// This is duplicated from `thumbor.conf`
-// Read comments there for context
-const THUMBOR_FILE_LOADER_ROOT_PATH = '/home/';
+const THUMBOR_ENV_PATH = join(__dirname, '.thumbor-env');
+// This is the default into MinimalCompact/thumbor configuration
+const THUMBOR_FILE_LOADER_ROOT_PATH = '/data/loader';
+const CURRENT_WORKING_DIRECTORY_PATH = process.cwd();
 
-let THUMBOR_PROCESS: ChildProcess | undefined;
-let THUMBOR_PROCESS_KILL_TIMEOUT: NodeJS.Timeout;
+const DOCKER_CONTAINER_NAME = 'ril-thumbor';
+
+let DOCKER_PROCESS: ChildProcess | undefined;
+let DOCKER_PROCESS_KILL_TIMEOUT: NodeJS.Timeout;
 let JOBS_IN_QUEUE = 0;
 
 function generateTransformationUrl(
@@ -55,7 +57,7 @@ function generateTransformationUrl(
     cropping = `${cropWidth}x${cropHeight}`;
     path = imagePath;
   }
-  path = path.replace(THUMBOR_FILE_LOADER_ROOT_PATH, '');
+  path = path.replace(CURRENT_WORKING_DIRECTORY_PATH, '');
 
   return urlStart + cropping + urlSmart + path;
 }
@@ -118,7 +120,7 @@ function createFiles(
   );
 }
 
-function thumborProcessReady(): Promise<void> {
+function thumborReady(): Promise<void> {
   const healthcheckUrl = `${THUMBOR_URL}:${THUMBOR_PORT}/healthcheck`;
   // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
   return new Promise(async (resolve, reject) => {
@@ -148,30 +150,48 @@ function thumborProcessReady(): Promise<void> {
 }
 
 // Do not use lambda functions, they won't retain `this` context
-export const thumborTransformer: TransformationAdapter = async function (
+export const thumborDockerTransformer: TransformationAdapter = async function (
   imagePath,
   transformations,
 ) {
   JOBS_IN_QUEUE++;
 
-  // Previously we spawned one process for every transformation, but it caused URI conflicts
-  if (!THUMBOR_PROCESS) {
-    THUMBOR_PROCESS = spawn(
-      'thumbor',
-      ['--port', THUMBOR_PORT, '--conf', THUMBOR_CONFIGURATION_PATH],
-      // Shows output from thumbor process into the console
+  if (!DOCKER_PROCESS) {
+    DOCKER_PROCESS = spawn(
+      'docker',
+      [
+        'run',
+        '-p',
+        `${THUMBOR_PORT}:80`,
+        '--name',
+        DOCKER_CONTAINER_NAME,
+        '--env-file',
+        THUMBOR_ENV_PATH,
+        '--mount',
+        `type=bind,source="$(pwd)",target=${THUMBOR_FILE_LOADER_ROOT_PATH},readonly`,
+        '--rm',
+        'minimalcompact/thumbor',
+      ],
+      // Shows output into the console
       { stdio: 'inherit' },
     );
-    THUMBOR_PROCESS_KILL_TIMEOUT = setTimeout(() => {
+    DOCKER_PROCESS.on('error', (err) =>
+      this.emitError(
+        `An error has been thrown while running the docker container with text "${err.message}", have you installed docker and run "docker pull minimalcompact/thumbor"?`,
+      ),
+    );
+
+    DOCKER_PROCESS_KILL_TIMEOUT = setTimeout(() => {
       if (JOBS_IN_QUEUE === 0) {
-        THUMBOR_PROCESS?.kill();
+        DOCKER_PROCESS?.kill();
+        exec(`docker container stop ${DOCKER_CONTAINER_NAME}`);
       } else {
-        THUMBOR_PROCESS_KILL_TIMEOUT = THUMBOR_PROCESS_KILL_TIMEOUT.refresh();
+        DOCKER_PROCESS_KILL_TIMEOUT = DOCKER_PROCESS_KILL_TIMEOUT.refresh();
       }
     }, 2000);
   }
 
-  await thumborProcessReady();
+  await thumborReady();
 
   const transformationSources: TransformationSource[] = [];
 

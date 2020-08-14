@@ -161,6 +161,7 @@ Everything should "Just Work™" out-of-the-box. It's installed by default when 
 Installation is currently a pain in the ass and docs are out-of-sync, but it's still the best open source tool for art-direction out in the wild right now. You can check [here](https://github.com/thumbor/thumbor/issues/1221#issuecomment-550424664) how I managed to make it work.
 
 **Thumbor adapter is currently the most messed up adapter and only works under Linux.**
+Thumbor can be setup on Windows via docker pod.
 It ships with a preset configuration, but you can overwrite string config options [via environment variables](https://thumbor.readthedocs.io/en/latest/configuration.html#override-config-through-environment-variable).
 
 We also didn't found an elegant solution to abstract most of the transformation adapter code into common code and to start `thumbor` instance just once per build process, so if you can think of a solution for this which **is self contained and doesn't require external configuration**, we'd like to get in touch with you.
