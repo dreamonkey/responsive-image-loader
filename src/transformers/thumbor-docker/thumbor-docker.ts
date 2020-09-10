@@ -168,7 +168,7 @@ export const thumborDockerTransformer: TransformationAdapter = async function (
         '--env-file',
         THUMBOR_ENV_PATH,
         '--mount',
-        `type=bind,source="$(pwd)",target=${THUMBOR_FILE_LOADER_ROOT_PATH},readonly`,
+        `type=bind,source=${process.cwd()},target=${THUMBOR_FILE_LOADER_ROOT_PATH},readonly`,
         '--rm',
         'minimalcompact/thumbor',
       ],

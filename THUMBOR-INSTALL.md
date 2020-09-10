@@ -25,6 +25,13 @@ Future dev
 
 - use multi processes?
 
-`docker run -p 8888:80 --name ril-thumbor --env-file ./node_modules/@dreamonkey/responsive-image-loader/dist/src/transformers/thumbor-docker/.thumbor-env --mount type=bind,source="$(pwd)",target=/app/loader,readonly --rm minimalcompact/thumbor`
+Run docker container `docker run -p 8888:80 --name ril-thumbor --env-file ./node_modules/@dreamonkey/responsive-image-loader/dist/src/transformers/thumbor-docker/.thumbor-env --mount type=bind,source="$(pwd)",target=/data/loader,readonly --rm minimalcompact/thumbor`
 
-`http://localhost:8888/unsafe/500x150/src/assets/images/backup-system.jpg`
+Use to check if this exists `http://localhost:8888/unsafe/500x150/src/assets/images/backup-system.jpg`
+
+Open bash in docker container `docker exec -it ril-thumbor bash`
+
+Problems:
+
+- responsive-bg not producing right html and images
+- files starting with "f" not working
