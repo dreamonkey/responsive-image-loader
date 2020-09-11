@@ -1,8 +1,11 @@
 import { existsSync, mkdirSync } from 'fs';
 import { getHashDigest } from 'loader-utils';
 import { isUndefined, mapKeys } from 'lodash';
-import { join, parse } from 'path';
+import { posix, join, parse } from 'path';
 import { Dictionary } from 'ts-essentials';
+
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const { join: posixJoin } = posix;
 
 export interface ViewportAliasesMap {
   [index: string]: string;
@@ -67,8 +70,8 @@ export function guardAgainstDefaultAlias(
   }
 }
 
-const TEMP_DIR = 'dist/temp';
-const TEMP_IMAGES_DIR = `${TEMP_DIR}/images`;
+const TEMP_DIR = join('dist', 'temp');
+const TEMP_IMAGES_DIR = join(TEMP_DIR, 'images');
 
 export function existsOrCreateDirectory(dir: string): void {
   if (!existsSync(dir)) {
@@ -122,7 +125,8 @@ export function generateUri(
 ): { uri: string; uriWithHash: string } {
   const hash = getHashDigest(content, 'md5', 'hex', 8);
   const { name: filename, ext: extension } = parse(path);
-  const uriStart = join(getOuputDir(), filename);
+  // The URI is a relative URL, and as such must always use posix style separators ("/")
+  const uriStart = posixJoin(getOuputDir(), filename);
   const uriBody = uriBodyGenerator();
 
   return {

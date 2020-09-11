@@ -91,7 +91,7 @@ function createFiles(
               );
 
               const { base } = parse(uri);
-              const path = `${getTempImagesDir()}/${base}`;
+              const path = join(getTempImagesDir(), base);
 
               this.emitFile(uriWithHash, result, {});
               writeFileSync(path, result);
