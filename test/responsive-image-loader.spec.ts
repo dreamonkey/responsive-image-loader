@@ -75,7 +75,7 @@ describe('Responsive image loader', () => {
           it('should add mime type when at least one transformation is defined', async () => {
             const output = await setup('./assets/single-image.html', {
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   '1200': { ratio: '2:3' },
                 },
@@ -93,7 +93,7 @@ describe('Responsive image loader', () => {
             const output = await setup('./assets/single-image.html', {
               defaultSize: 0.5,
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   '1200': { ratio: '2:3' },
                   '1500': { ratio: '16:9' },
@@ -120,7 +120,7 @@ describe('Responsive image loader', () => {
                   md: '1023',
                 },
                 artDirection: {
-                  transformer: 'thumbor',
+                  transformer: 'thumbor-docker',
                 },
                 ...conversionDisabled,
                 ...resolutionSwitchingDisabled,
@@ -141,7 +141,7 @@ describe('Responsive image loader', () => {
                   md: '1023',
                 },
                 artDirection: {
-                  transformer: 'thumbor',
+                  transformer: 'thumbor-docker',
                   defaultTransformations: {
                     xs: { ratio: '5:3' },
                   },
@@ -162,7 +162,7 @@ describe('Responsive image loader', () => {
                 mdLowerHalf: '1200',
               },
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   mdLowerHalf: { ratio: '2:3' },
                 },
@@ -181,7 +181,7 @@ describe('Responsive image loader', () => {
             await expect(
               setup('./assets/single-image.html', {
                 artDirection: {
-                  transformer: 'thumbor',
+                  transformer: 'thumbor-docker',
                   defaultTransformations: {
                     lg: { ratio: '2:1' },
                   },
@@ -195,7 +195,7 @@ describe('Responsive image loader', () => {
             await expect(
               setup('./assets/single-image.html', {
                 artDirection: {
-                  transformer: 'thumbor',
+                  transformer: 'thumbor-docker',
                   defaultTransformations: {
                     '%&:': { ratio: '2:1' },
                   },
@@ -211,7 +211,7 @@ describe('Responsive image loader', () => {
           it('should resolve transformation to specific image when path is provided', async () => {
             const output = await setup('./assets/single-image.html', {
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   '600': { path: 'custom-example.jpg' },
                 },
@@ -228,7 +228,7 @@ describe('Responsive image loader', () => {
           it('should order transformations in ascending order', async () => {
             const output = await setup('./assets/single-image.html', {
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   '300': { ratio: '4:3' },
                   '1919': { ratio: '16:9' },
@@ -248,7 +248,7 @@ describe('Responsive image loader', () => {
           it('should preserve attributes on image tag', async () => {
             const output = await setup('./assets/single-image.html', {
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   '600': { ratio: '4:3' },
                 },
@@ -265,7 +265,7 @@ describe('Responsive image loader', () => {
           it('should create one source for each art-direction transformation', async () => {
             const output = await setup('./assets/single-image.html', {
               artDirection: {
-                transformer: 'thumbor',
+                transformer: 'thumbor-docker',
                 defaultTransformations: {
                   '600': { ratio: '4:3' },
                   '1024': { ratio: '2:1' },
