@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.3.4
+## 0.4.1
+
+- Docs: fix changelog
+- Fix: allow usage on every OS
+
+## 0.4.0
 
 - Chore: update deps
 - Feat: add `thumbor-docker` transformer
