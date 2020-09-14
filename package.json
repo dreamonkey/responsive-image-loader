@@ -1,6 +1,6 @@
 {
   "name": "@dreamonkey/responsive-image-loader",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A webpack loader to automagically bring your website images to a whole new level of responsiveness!",
   "keywords": [
     "webpack",
@@ -69,10 +69,6 @@
     "node": ">= 8.9.0",
     "yarn": ">= 1.6.0"
   },
-  "os": [
-    "linux",
-    "win32"
-  ],
   "publishConfig": {
     "access": "public"
   }
