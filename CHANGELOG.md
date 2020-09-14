@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.4
+
+- Chore: update deps
+- Feat: add `thumbor-docker` transformer
+- Chore: deprecate `thumbor` transformer
+- Feat: support Windows and Mac using docker to run Thumbor
+
 ## 0.3.3
 
 - Chore: update deps

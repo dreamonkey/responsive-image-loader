@@ -12,4 +12,12 @@ To run unit tests, run `yarn test`.
 NOTE: Currently some Thumbor-related tests will fail randomly due to possible race conditions or time-outs.
 Run them 2-3 times and they should disappear.
 
+When using "thumbor-docker" transformer, you can run this command from the root directory of the project using the loader, to start the thumbor container with needed configuration:
+
+```sh
+docker run -p 8888:80 --name ril-thumbor --env-file ./node_modules/@dreamonkey/responsive-image-loader/dist/src/transformers/thumbor-docker/.thumbor-env --mount type=bind,source="$(pwd)",target=/data/loader,readonly --rm minimalcompact/thumbor
+```
+
+Then you can access the container running `docker exec -it ril-thumbor bash` from another terminal instance.
+
 To run lint, run `yarn lint`.
