@@ -22,7 +22,8 @@ import {
 } from './base';
 import { deepFreeze } from './helpers';
 import { ResponsiveImage } from './parsing';
-import { thumborTransformer } from './transformers/thumbor';
+import { thumborTransformer } from './transformers/thumbor/thumbor';
+import { thumborDockerTransformer } from './transformers/thumbor-docker/thumbor-docker';
 import {
   TransformationAdapter,
   TransformationAdapterPresets,
@@ -252,6 +253,7 @@ type TransformationAdapterPresetsMap = {
 
 const presetTransformers: TransformationAdapterPresetsMap = deepFreeze({
   thumbor: thumborTransformer,
+  'thumbor-docker': thumborDockerTransformer,
 });
 
 export function transformImage(

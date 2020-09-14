@@ -4,14 +4,14 @@ import { map } from 'lodash';
 import { join, parse } from 'path';
 import request from 'request';
 import { loader } from 'webpack';
-import { getTempImagesDir } from '../base';
+import { getTempImagesDir } from '../../base';
 import {
   generateTransformationUri,
   isCustomTransformation,
   TransformationDescriptor,
   TransformationSource,
-} from '../transformation';
-import { TransformationAdapter } from './transformers';
+} from '../../transformation';
+import { TransformationAdapter } from '../transformers';
 
 const THUMBOR_URL = 'http://localhost';
 const THUMBOR_PORT = '8888';
@@ -91,7 +91,7 @@ function createFiles(
               );
 
               const { base } = parse(uri);
-              const path = `${getTempImagesDir()}/${base}`;
+              const path = join(getTempImagesDir(), base);
 
               this.emitFile(uriWithHash, result, {});
               writeFileSync(path, result);
