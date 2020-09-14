@@ -156,13 +156,15 @@ Every engine has its installation guide (independent from this loader) and you c
 
 Everything should "Just Work™" out-of-the-box. It's installed by default when adding the loader dependency, but check for [`libvips` dependency](https://sharp.pixelplumbing.com/en/stable/install/#libvips) if something doesn't work properly. If you get build errors at the first run, try deleting and re-installing the whole `node_modules` folder.
 
-#### [`thumbor`](https://github.com/thumbor/thumbor) (art direction, **Linux-only**, **DEPRECATED**)
+#### [`thumbor`](https://github.com/thumbor/thumbor) (art direction, **Linux-only**)
 
 Local installation of thumbor is currently a pain in the ass and docs are out-of-sync, we highly suggest you to use `thumbor-docker` engine instead.
-`thumbor` engine is deprecated and will be removed before releasing v1 of this loader.
 If you still want to install it locally, you can check [here](https://github.com/thumbor/thumbor/issues/1221#issuecomment-550424664) how I managed to make it work.
 
 This adapter ships with a preset configuration, but you can overwrite string config options [via environment variables](https://thumbor.readthedocs.io/en/latest/configuration.html#override-config-through-environment-variable).
+
+This engine leverage Thumbor cache and as such build time will decrease on subsequent runs.
+This engine will be deprecated when a custom cache mechanism will be added on the loader.
 
 #### [`thumbor-docker`](https://github.com/thumbor/thumbor) (art direction, **cross-platform**)
 
@@ -171,13 +173,15 @@ When releasing v1, this loader will be renamed as `thumbor` and will be the defa
 
 First setup Docker on your system:
 
-- [Linux](https://docs.docker.com/engine/install/ubuntu/)
+- [Linux](https://docs.docker.com/engine/install/ubuntu/) (we suggest to use ["rootless" mode](https://docs.docker.com/engine/security/rootless))
 - [Windows](https://docs.docker.com/docker-for-windows/install/)
 - [Mac](https://docs.docker.com/docker-for-mac/install/)
 
 Then pull [docker Thumbor image](https://github.com/MinimalCompact/thumbor) running `docker pull minimalcompact/thumbor`.
 
 This engine ships with a preset configuration, unlike `thumbor` engine you currently **cannot overwrite** string config options via environment variables. If needed, we will take into consideration adding this feature.
+
+Due to its nature of spawning a brand new container for every build cycle, using `thumbor-docker` will not leverage Thumbor cache mechanism as `thumbor` engine does, meaning build time will not decrease on subsequent runs.
 
 ## <span id="usage"></span> Usage
 
