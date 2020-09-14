@@ -361,7 +361,7 @@ const fullOptionsExample: ResponsiveImageLoaderConfig = {
     },
   },
   artDirection: {
-    transformer: 'thumbor',
+    transformer: 'thumbor-docker',
     defaultRatio: 'original',
     defaultTransformations: {
       xs: { ratio: '4:3' },
@@ -386,7 +386,7 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
     },
   },
   artDirection: {
-    transformer: 'thumbor',
+    transformer: 'thumbor-docker',
     defaultTransformations: {
       xs: { ratio: '4:3' },
       sm: { ratio: '2:1' },
