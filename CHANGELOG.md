@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- Chore: update deps
+- Docs: explain usage when executed into Node environment (eg. Quasar SSR)
+
 ## 0.4.1
 
 - Docs: fix changelog

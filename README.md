@@ -79,7 +79,13 @@ Do you need a UX and quality driven team to work on your project? Get in touch w
 
 ## <span id="installation"></span> Installation
 
-Install via `yarn add -D @dreamonkey/responsive-image-loader` or `npm install -D @dreamonkey/responsive-image-loader`.
+Install via
+
+`yarn add -D @dreamonkey/responsive-image-loader`
+
+or
+
+`npm install -D @dreamonkey/responsive-image-loader`.
 
 ### <span id="loader"></span> Loader
 
@@ -615,6 +621,37 @@ The compilation time overhead of this loader is high, due to image processing. I
 if (process.env.NODE_ENV === "production") {
     webpackConfig.module.rules.push({ ... });
 }
+```
+
+### Why do I get `TypeError: Cannot read property 'replace' of undefined` when building?
+
+It means this loader is applied by Webpack, but it doesn't return anything to the next loader. It usually happens when you use `thumbor-docker` transformer, but you forgot to start the docker daemon.
+
+### Execution into Node environment
+
+When executed into Node environment (eg. when building for Quasar SSR mode) and using `responsive-bg` feature, the compilation could break and throw one of these two errors:
+
+1. `Conflict: Multiple chunks emit assets to the same filename server-bundle.js`
+
+   Using multiple Webpack `entry` points, as we do to register the handler, and compiling client and server bundles with the same Webpack process, the `responsive-bg-image-handler` will be registered two times, triggering a naming conflict.
+
+1. `ReferenceError: window is not defined`
+
+   This error is thrown when the loader tries to register the handler into the global `window` object, as it isn't available in the Node environment.
+
+The handler is only useful at runtime on the client, the solution to both these problems is to include the handler registration only on the client webpack configuration.
+
+When talking about Quasar SSR mode, this means you should use `isClient` SSR flag into the second parameter of `extendWebpack`.
+
+```js
+extendWebpack(webpackConfig, { isClient }) {
+  // ... other configurations
+
+  if (isClient) {
+    cfg.entry['responsive-bg-image-handler'] =
+      '@dreamonkey/responsive-image-loader';
+  }
+},
 ```
 
 ### Pay attention to CSS selectors
