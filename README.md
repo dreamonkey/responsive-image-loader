@@ -799,8 +799,6 @@ The enhanced element `background-image` property is updated via a globally avail
 </div>
 ```
 
-```
-
 ## <span id="contributing"></span> Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
@@ -812,4 +810,3 @@ If you discover any security related issues, please email security@dreamonkey.co
 ## <span id="license"></span> License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-```
