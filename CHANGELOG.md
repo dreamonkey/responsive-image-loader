@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Feat: add background images fallback hook for SSR/SSG builds
+
 ## 0.4.2
 
 - Chore: update deps
