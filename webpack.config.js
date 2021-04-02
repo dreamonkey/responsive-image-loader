@@ -2,7 +2,7 @@ const bgImageHandlerFolder = './dist/src/background-image-handler';
 const bgImageHandlerPath = `${bgImageHandlerFolder}/background-image-handler`;
 const staticGenerationFallbackPath = `${bgImageHandlerFolder}/static-generation-fallback`;
 
-const resolve = require('path').resolve;
+const { resolve } = require('path');
 const handlerFnName = require(bgImageHandlerPath).default.name;
 
 module.exports = {

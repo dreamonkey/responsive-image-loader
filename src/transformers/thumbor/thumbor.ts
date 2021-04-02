@@ -1,8 +1,8 @@
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, spawn, exec } from 'child_process';
 import { writeFileSync } from 'fs';
-import { map } from 'lodash';
-import { join, parse } from 'path';
-import request from 'request';
+import { map } from 'lodash-es';
+import { parse, join } from 'path';
+import got from 'got';
 import { loader } from 'webpack';
 import { getTempImagesDir } from '../../base';
 import {
@@ -15,13 +15,15 @@ import { TransformationAdapter } from '../transformers';
 
 const THUMBOR_URL = 'http://localhost';
 const THUMBOR_PORT = '8888';
-const THUMBOR_CONFIGURATION_PATH = join(__dirname, 'thumbor.conf');
-// This is duplicated from `thumbor.conf`
-// Read comments there for context
-const THUMBOR_FILE_LOADER_ROOT_PATH = '/home/';
+const THUMBOR_ENV_PATH = join(__dirname, '.thumbor-env');
+// This is the default into MinimalCompact/thumbor configuration
+const THUMBOR_FILE_LOADER_ROOT_PATH = '/data/loader';
+const CURRENT_WORKING_DIRECTORY_PATH = process.cwd();
 
-let THUMBOR_PROCESS: ChildProcess | undefined;
-let THUMBOR_PROCESS_KILL_TIMEOUT: NodeJS.Timeout;
+const DOCKER_CONTAINER_NAME = 'ril-thumbor';
+
+let DOCKER_PROCESS: ChildProcess | undefined;
+let DOCKER_PROCESS_KILL_TIMEOUT: NodeJS.Timeout;
 let JOBS_IN_QUEUE = 0;
 
 function generateTransformationUrl(
@@ -55,7 +57,7 @@ function generateTransformationUrl(
     cropping = `${cropWidth}x${cropHeight}`;
     path = imagePath;
   }
-  path = path.replace(THUMBOR_FILE_LOADER_ROOT_PATH, '');
+  path = path.replace(CURRENT_WORKING_DIRECTORY_PATH, '');
 
   return urlStart + cropping + urlSmart + path;
 }
@@ -66,59 +68,45 @@ function createFiles(
   transformations: TransformationDescriptor[],
 ): Promise<TransformationSource[]> {
   return Promise.all(
-    map(
-      transformations,
-      (transformation) =>
-        new Promise<TransformationSource>((resolve, reject) => {
-          let result: Buffer;
-          const url = generateTransformationUrl(imagePath, transformation);
+    map(transformations, async (transformation) => {
+      const url = generateTransformationUrl(imagePath, transformation);
 
-          try {
-            // "http" native library throwed
-            // `[ERR_STREAM_CANNOT_PIPE] [ERR_STREAM_CANNOT_PIPE]: Cannot pipe, not readable`
-            // with this same code, for unknown reasons, so we switched to "request"
-            // `{ encoding: null }` is needed to get the body as a binary Buffer
-            //  because default behaviour is to transform it into a string
-            // See: https://github.com/request/request#requestoptions-callback > 'encoding' property
-            request(url, { encoding: null }, (error, response, body) => {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              result = body;
-            }).on('close', () => {
-              const { uri, uriWithHash } = generateTransformationUri(
-                imagePath,
-                result,
-                transformation,
-              );
+      try {
+        const result = await got(url).buffer();
 
-              const { base } = parse(uri);
-              const path = join(getTempImagesDir(), base);
+        const { uri, uriWithHash } = generateTransformationUri(
+          imagePath,
+          result,
+          transformation,
+        );
 
-              this.emitFile(uriWithHash, result, {});
-              writeFileSync(path, result);
+        const { base } = parse(uri);
+        const path = join(getTempImagesDir(), base);
 
-              resolve({
-                ...transformation,
-                path,
-                breakpoints: [
-                  {
-                    path,
-                    uri,
-                    uriWithHash,
-                    width: transformation.maxViewport * transformation.size,
-                  },
-                ],
-              });
-            });
-          } catch (e) {
-            this.emitError(e);
-            reject(e);
-          }
-        }),
-    ),
+        this.emitFile(uriWithHash, result, {});
+        writeFileSync(path, result);
+
+        return {
+          ...transformation,
+          path,
+          breakpoints: [
+            {
+              path,
+              uri,
+              uriWithHash,
+              width: transformation.maxViewport * transformation.size,
+            },
+          ],
+        };
+      } catch (e) {
+        this.emitError(e);
+        throw e;
+      }
+    }),
   );
 }
 
-function thumborProcessReady(): Promise<void> {
+function thumborReady(): Promise<void> {
   const healthcheckUrl = `${THUMBOR_URL}:${THUMBOR_PORT}/healthcheck`;
   // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
   return new Promise(async (resolve, reject) => {
@@ -130,11 +118,7 @@ function thumborProcessReady(): Promise<void> {
     let isReady = false;
     let retries = 0;
     while (!isReady && retries < 10) {
-      isReady = await new Promise<boolean>((resolve3) => {
-        request(healthcheckUrl, (error, response, body) => {
-          resolve3(body === 'WORKING' ? true : false);
-        });
-      });
+      isReady = (await got(healthcheckUrl).text()) === 'WORKING';
       retries++;
       await new Promise((resolve4) => setTimeout(resolve4, 150));
     }
@@ -148,30 +132,48 @@ function thumborProcessReady(): Promise<void> {
 }
 
 // Do not use lambda functions, they won't retain `this` context
-export const thumborTransformer: TransformationAdapter = async function (
+export const thumborDockerTransformer: TransformationAdapter = async function (
   imagePath,
   transformations,
 ) {
   JOBS_IN_QUEUE++;
 
-  // Previously we spawned one process for every transformation, but it caused URI conflicts
-  if (!THUMBOR_PROCESS) {
-    THUMBOR_PROCESS = spawn(
-      'thumbor',
-      ['--port', THUMBOR_PORT, '--conf', THUMBOR_CONFIGURATION_PATH],
-      // Shows output from thumbor process into the console
+  if (!DOCKER_PROCESS) {
+    DOCKER_PROCESS = spawn(
+      'docker',
+      [
+        'run',
+        '-p',
+        `${THUMBOR_PORT}:80`,
+        '--name',
+        DOCKER_CONTAINER_NAME,
+        '--env-file',
+        THUMBOR_ENV_PATH,
+        '--mount',
+        `type=bind,source=${process.cwd()},target=${THUMBOR_FILE_LOADER_ROOT_PATH},readonly`,
+        '--rm',
+        'minimalcompact/thumbor',
+      ],
+      // Shows output into the console
       { stdio: 'inherit' },
     );
-    THUMBOR_PROCESS_KILL_TIMEOUT = setTimeout(() => {
+    DOCKER_PROCESS.on('error', (err) =>
+      this.emitError(
+        `An error has been thrown while running the docker container with text "${err.message}", have you installed docker and run "docker pull minimalcompact/thumbor"?`,
+      ),
+    );
+
+    DOCKER_PROCESS_KILL_TIMEOUT = setTimeout(() => {
       if (JOBS_IN_QUEUE === 0) {
-        THUMBOR_PROCESS?.kill();
+        DOCKER_PROCESS?.kill();
+        exec(`docker container stop ${DOCKER_CONTAINER_NAME}`);
       } else {
-        THUMBOR_PROCESS_KILL_TIMEOUT = THUMBOR_PROCESS_KILL_TIMEOUT.refresh();
+        DOCKER_PROCESS_KILL_TIMEOUT = DOCKER_PROCESS_KILL_TIMEOUT.refresh();
       }
     }, 2000);
   }
 
-  await thumborProcessReady();
+  await thumborReady();
 
   const transformationSources: TransformationSource[] = [];
 

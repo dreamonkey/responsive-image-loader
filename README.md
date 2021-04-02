@@ -162,20 +162,7 @@ Every engine has its installation guide (independent from this loader) and you c
 
 Everything should "Just Work™" out-of-the-box. It's installed by default when adding the loader dependency, but check for [`libvips` dependency](https://sharp.pixelplumbing.com/en/stable/install/#libvips) if something doesn't work properly. If you get build errors at the first run, try deleting and re-installing the whole `node_modules` folder.
 
-#### [`thumbor`](https://github.com/thumbor/thumbor) (art direction, **Linux-only**)
-
-Local installation of thumbor is currently a pain in the ass and docs are out-of-sync, we highly suggest you to use `thumbor-docker` engine instead.
-If you still want to install it locally, you can check [here](https://github.com/thumbor/thumbor/issues/1221#issuecomment-550424664) how I managed to make it work.
-
-This adapter ships with a preset configuration, but you can overwrite string config options [via environment variables](https://thumbor.readthedocs.io/en/latest/configuration.html#override-config-through-environment-variable).
-
-This engine leverage Thumbor cache and as such build time will decrease on subsequent runs.
-This engine will be deprecated when a custom cache mechanism will be added on the loader.
-
-#### [`thumbor-docker`](https://github.com/thumbor/thumbor) (art direction, **cross-platform**)
-
-This engine is the same as `thumbor` one, but it works cross-platform and it's installation is much more easier, thanks to the usage of docker.
-When releasing v1, this loader will be renamed as `thumbor` and will be the default one.
+#### [`thumbor`](https://github.com/thumbor/thumbor) (art direction)
 
 First setup Docker on your system:
 
@@ -185,9 +172,9 @@ First setup Docker on your system:
 
 Then pull [docker Thumbor image](https://github.com/MinimalCompact/thumbor) running `docker pull minimalcompact/thumbor`.
 
-This engine ships with a preset configuration, unlike `thumbor` engine you currently **cannot overwrite** string config options via environment variables. If needed, we will take into consideration adding this feature.
+This engine ships with a preset configuration.
 
-Due to its nature of spawning a brand new container for every build cycle, using `thumbor-docker` will not leverage Thumbor cache mechanism as `thumbor` engine does, meaning build time will not decrease on subsequent runs.
+Due to its nature of spawning a brand new container for every build cycle, using `thumbor` will not leverage Thumbor builtcache mechanism, meaning build time will not decrease on subsequent runs.
 
 ## <span id="usage"></span> Usage
 
@@ -367,7 +354,7 @@ const fullOptionsExample: ResponsiveImageLoaderConfig = {
     },
   },
   artDirection: {
-    transformer: 'thumbor-docker',
+    transformer: 'thumbor',
     defaultRatio: 'original',
     defaultTransformations: {
       xs: { ratio: '4:3' },
@@ -392,7 +379,7 @@ const options: DeepPartial<ResponsiveImageLoaderConfig> = {
     },
   },
   artDirection: {
-    transformer: 'thumbor-docker',
+    transformer: 'thumbor',
     defaultTransformations: {
       xs: { ratio: '4:3' },
       sm: { ratio: '2:1' },
@@ -625,7 +612,7 @@ if (process.env.NODE_ENV === "production") {
 
 ### Why do I get `TypeError: Cannot read property 'replace' of undefined` when building?
 
-It means this loader is applied by Webpack, but it doesn't return anything to the next loader. It usually happens when you use `thumbor-docker` transformer, but you forgot to start the docker daemon.
+It means this loader is applied by Webpack, but it doesn't return anything to the next loader. It usually happens when you use `thumbor` transformer, but you forgot to start the docker daemon.
 
 ### Execution into Node environment
 
