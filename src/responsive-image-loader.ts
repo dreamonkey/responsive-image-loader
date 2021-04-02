@@ -1,5 +1,5 @@
 import { getOptions } from 'loader-utils';
-import { each, merge } from 'lodash-es';
+import { each, merge } from 'lodash';
 import validate from 'schema-utils';
 import { DeepPartial } from 'ts-essentials';
 import { loader } from 'webpack';

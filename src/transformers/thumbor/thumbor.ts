@@ -1,6 +1,6 @@
 import { ChildProcess, spawn, exec } from 'child_process';
 import { writeFileSync } from 'fs';
-import { map } from 'lodash-es';
+import { map } from 'lodash';
 import { parse, join } from 'path';
 import got from 'got';
 import { loader } from 'webpack';
