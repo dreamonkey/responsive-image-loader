@@ -10,7 +10,7 @@ import {
   merge,
   omit,
   union,
-} from 'lodash-es';
+} from 'lodash';
 import { Dictionary } from 'ts-essentials';
 import { loader } from 'webpack';
 import {
