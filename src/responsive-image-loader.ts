@@ -1,5 +1,5 @@
 import { getOptions } from 'loader-utils';
-import { each, merge } from 'lodash';
+import { each, merge } from 'lodash-es';
 import validate from 'schema-utils';
 import { DeepPartial } from 'ts-essentials';
 import { loader } from 'webpack';
@@ -21,13 +21,13 @@ function defineLoader(callback: loader.Loader): loader.Loader {
   return callback;
 }
 
-export default defineLoader(function(source) {
+export default defineLoader(function (source) {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const callback = this.async()!;
 
-  const userOptions = getOptions(this) as DeepPartial<
-    ResponsiveImageLoaderConfig
-  >;
+  const userOptions = getOptions(
+    this,
+  ) as DeepPartial<ResponsiveImageLoaderConfig>;
 
   // TODO: check TS problem with readonly json-schema
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,12 +62,12 @@ export default defineLoader(function(source) {
 
   this.addDependency(this.resourcePath);
 
-  parsedImages.map(responsiveImage =>
+  parsedImages.map((responsiveImage) =>
     this.addDependency(responsiveImage.originalPath),
   );
 
   let imagesToProcess = Promise.all(
-    parsedImages.map(async responsiveImage => {
+    parsedImages.map(async (responsiveImage) => {
       // Manage transformations only on images explicitly opting-in
       if (!isTransformationResponsiveImage(responsiveImage)) {
         return responsiveImage;
@@ -81,7 +81,7 @@ export default defineLoader(function(source) {
       );
 
       // Normalizes paths of custom transformations
-      each(transformations, transformation => {
+      each(transformations, (transformation) => {
         if (isCustomTransformation(transformation)) {
           transformation.path = resolveImagePath(
             this.rootContext,
@@ -104,10 +104,10 @@ export default defineLoader(function(source) {
     }),
   );
 
-  imagesToProcess = imagesToProcess.then(imagesToResize =>
+  imagesToProcess = imagesToProcess.then((imagesToResize) =>
     Promise.all(
       imagesToResize.map(
-        async responsiveImage =>
+        async (responsiveImage) =>
           await resizeImage.call(
             this,
             responsiveImage,
@@ -117,9 +117,9 @@ export default defineLoader(function(source) {
     ),
   );
 
-  imagesToProcess = imagesToProcess.then(imagesToConvert =>
+  imagesToProcess = imagesToProcess.then((imagesToConvert) =>
     Promise.all(
-      imagesToConvert.map(async responsiveImage => {
+      imagesToConvert.map(async (responsiveImage) => {
         return await convertImage.call(
           this,
           responsiveImage,
@@ -130,8 +130,8 @@ export default defineLoader(function(source) {
   );
 
   (imagesToProcess as Promise<ConversionResponsiveImage[]>)
-    .then(responsiveImages =>
+    .then((responsiveImages) =>
       callback(null, enhance(sourceWithPlaceholders, responsiveImages)),
     )
-    .catch(err => callback(err));
+    .catch((err) => callback(err));
 });

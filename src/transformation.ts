@@ -10,7 +10,7 @@ import {
   merge,
   omit,
   union,
-} from 'lodash';
+} from 'lodash-es';
 import { Dictionary } from 'ts-essentials';
 import { loader } from 'webpack';
 import {
@@ -22,8 +22,7 @@ import {
 } from './base';
 import { deepFreeze } from './helpers';
 import { ResponsiveImage } from './parsing';
-import { thumborTransformer } from './transformers/thumbor/thumbor';
-import { thumborDockerTransformer } from './transformers/thumbor-docker/thumbor-docker';
+import { thumborDockerTransformer } from './transformers/thumbor/thumbor';
 import {
   TransformationAdapter,
   TransformationAdapterPresets,
@@ -252,8 +251,7 @@ type TransformationAdapterPresetsMap = {
 };
 
 const presetTransformers: TransformationAdapterPresetsMap = deepFreeze({
-  thumbor: thumborTransformer,
-  'thumbor-docker': thumborDockerTransformer,
+  thumbor: thumborDockerTransformer,
 });
 
 export function transformImage(

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0
+
+- Chore: update deps
+- Refactor: replace unmaintained `request` with `got` into `thumbor-docker` transformer
+- Refactor: remove old `thumbor` transformer implementation, rename `thumbor-docker` to `thumbor`
+
 ## 0.5.0
 
 - Feat: add background images fallback hook for SSR/SSG builds

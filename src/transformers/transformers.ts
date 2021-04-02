@@ -11,4 +11,4 @@ export type TransformationAdapter = (
   transformations: TransformationDescriptor[],
 ) => Promise<TransformationSource[]>;
 
-export type TransformationAdapterPresets = 'thumbor' | 'thumbor-docker';
+export type TransformationAdapterPresets = 'thumbor';
