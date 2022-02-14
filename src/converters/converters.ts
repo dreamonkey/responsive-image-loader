@@ -1,8 +1,8 @@
-import { loader } from 'webpack';
-import { Breakpoint, SupportedImageFormats } from '../base';
+import { ResponsiveImageLoaderContext } from 'src/config';
+import { Breakpoint, SupportedImageFormats } from 'src/base';
 
 export type ConversionAdapter = (
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   sourcePath: string,
   destinationPath: string,
   uriWithoutHash: string,

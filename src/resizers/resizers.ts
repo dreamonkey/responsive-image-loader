@@ -1,8 +1,8 @@
-import { loader } from 'webpack';
-import { Breakpoint } from '../base';
+import { ResponsiveImageLoaderContext } from 'src/config';
+import { Breakpoint } from 'src/base';
 
 export type ResizingAdapter = (
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   sourcePath: string,
   destinationPath: string,
   breakpointWindth: number,

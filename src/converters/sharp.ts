@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import { generateConversionUri } from '../conversion';
 import { ConversionAdapter } from './converters';
 
-export const sharpConverter: ConversionAdapter = async function(
+export const sharpConverter: ConversionAdapter = async function (
   sourcePath,
   destinationPath,
   unhashedUri,
@@ -22,7 +22,7 @@ export const sharpConverter: ConversionAdapter = async function(
     base: parse(uri).base,
   });
 
-  this.emitFile(uriWithHash, result, {});
+  this.emitFile(uriWithHash, result);
   await conversion.toFile(destinationPath);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

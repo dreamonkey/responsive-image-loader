@@ -1,12 +1,12 @@
-import { loader } from 'webpack';
+import { ResponsiveImageLoaderContext } from 'src/config';
 import {
   TransformationDescriptor,
   TransformationSource,
-} from '../transformation';
+} from 'src/transformation';
 
 // Do not use lambda functions, they won't retain `this` context
 export type TransformationAdapter = (
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   imagePath: string,
   transformations: TransformationDescriptor[],
 ) => Promise<TransformationSource[]>;

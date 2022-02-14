@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync } from 'fs';
-import { getHashDigest } from 'loader-utils';
-import { isUndefined, mapKeys } from 'lodash';
-import { posix, join, parse } from 'path';
+import { isUndefined, mapKeys } from 'lodash-es';
+import { join, parse, posix } from 'path';
 import { Dictionary } from 'ts-essentials';
+import { getHashDigest } from './helpers';
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { join: posixJoin } = posix;
@@ -123,7 +123,7 @@ export function generateUri(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   uriBodyGenerator: (...args: any[]) => string,
 ): { uri: string; uriWithHash: string } {
-  const hash = getHashDigest(content, 'md5', 'hex', 8);
+  const hash = getHashDigest(content);
   const { name: filename, ext: extension } = parse(path);
   // The URI is a relative URL, and as such must always use posix style separators ("/")
   const uriStart = posixJoin(getOuputDir(), filename);

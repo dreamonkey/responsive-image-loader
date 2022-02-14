@@ -1,7 +1,8 @@
-import { createHash } from 'crypto';
+import { describe, expect, it } from '@jest/globals';
 import { writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { existsOrCreateDirectory } from 'src/base';
+import { getHashDigest } from 'src/helpers';
 import { compiler } from './compiler';
 
 const TEMP_DIR = 'dist/temp/test';
@@ -12,11 +13,11 @@ async function setup(
 ): Promise<string> {
   const stats = await compiler(entryPath, options);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const moduleData = stats.toJson().modules![0].source!;
+  const moduleData = stats.toJson({ source: true }).modules![0].source!;
 
   existsOrCreateDirectory(TEMP_DIR);
 
-  const hash = createHash('md5').update(moduleData).digest('hex');
+  const hash = getHashDigest(moduleData);
   const tempFileName = join(TEMP_DIR, `${hash}.js`);
   const path = resolve(__dirname, '..', tempFileName);
   writeFileSync(path, moduleData);

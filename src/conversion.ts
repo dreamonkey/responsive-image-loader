@@ -1,7 +1,6 @@
 import { fromFile } from 'file-type';
-import { isNull, isUndefined } from 'lodash';
+import { isNull, isUndefined } from 'lodash-es';
 import { format as formatPath, join, parse } from 'path';
-import { loader } from 'webpack';
 import {
   ConversionAdapter,
   ConversionAdapterPresets,
@@ -17,6 +16,7 @@ import {
   getOuputDir,
 } from './base';
 import { TransformationSource } from './transformation';
+import { ResponsiveImageLoaderContext } from './config';
 
 const PREFERRED_FORMAT_ORDER: string[] = [
   SupportedImageFormats.WebP.toString(),
@@ -91,7 +91,7 @@ export const generateConversionUri = (
   generateUri(path, content, () => '-c');
 
 async function generateFallbackSource(
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   converter: ConversionAdapter,
   sourcePath: string,
   size: number,
@@ -130,7 +130,7 @@ function changeExtension(
 }
 
 export async function convertImage(
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   responsiveImage: BaseResponsiveImage,
   { converter, enabledFormats }: ConversionConfig,
 ): Promise<ConversionResponsiveImage> {

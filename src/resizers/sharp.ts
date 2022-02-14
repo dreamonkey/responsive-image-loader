@@ -1,9 +1,9 @@
 import { format, parse } from 'path';
 import sharp from 'sharp';
+import { generateResizingUri } from 'src/resizing';
 import { ResizingAdapter } from './resizers';
-import { generateResizingUri } from '../resizing';
 
-export const sharpResizer: ResizingAdapter = async function(
+export const sharpResizer: ResizingAdapter = async function (
   sourcePath,
   destinationPath,
   breakpointWidth,
@@ -27,7 +27,7 @@ export const sharpResizer: ResizingAdapter = async function(
     base: parse(uri).base,
   });
 
-  this.emitFile(uriWithHash, result, {});
+  this.emitFile(uriWithHash, result);
   await resizing.toFile(destinationPath);
 
   return { path: destinationPath, uri, uriWithHash, width: breakpointWidth };

@@ -1,8 +1,8 @@
 import { existsSync, statSync, writeFileSync } from 'fs';
-import { isNull, isUndefined, map, times } from 'lodash';
+import { isNull, isUndefined, map, times } from 'lodash-es';
 import { format, join, parse } from 'path';
-import { loader } from 'webpack';
 import { Breakpoint, generateUri, getTempImagesDir, SizesMap } from './base';
+import { ResponsiveImageLoaderContext } from './config';
 import { deepFreeze } from './helpers';
 import { ResponsiveImage } from './parsing';
 import { ResizingAdapter, ResizingAdapterPresets } from './resizers/resizers';
@@ -184,7 +184,7 @@ function generateIntervals(
 }
 
 async function generateBreakpoints(
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   resizer: ResizingAdapter,
   minStepSize: number,
   currentInterval: ResizingInterval,
@@ -255,7 +255,7 @@ async function generateBreakpoints(
     and removed when they cannot be used in the widest viewport available.
 */
 export async function resizeImage(
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   image: ResponsiveImage,
   {
     resizer,

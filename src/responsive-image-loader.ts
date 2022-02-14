@@ -1,8 +1,5 @@
-import { getOptions } from 'loader-utils';
-import { each, merge } from 'lodash';
-import validate from 'schema-utils';
-import { DeepPartial } from 'ts-essentials';
-import { loader } from 'webpack';
+import { each, merge } from 'lodash-es';
+import { LoaderDefinitionFunction } from 'webpack';
 import { OPTIONS_SCHEMA, ResponsiveImageLoaderConfig } from './config';
 import { ConversionResponsiveImage, convertImage } from './conversion';
 import { DEFAULT_OPTIONS } from './defaults';
@@ -15,25 +12,14 @@ import {
   transformImage,
 } from './transformation';
 import { setPathsOptions, guardAgainstDefaultAlias } from './base';
+import { DeepPartial } from 'ts-essentials';
 
-// `callback` cannot be a lambda function or `this` context won't be bound correcly
-function defineLoader(callback: loader.Loader): loader.Loader {
-  return callback;
-}
+const loader: LoaderDefinitionFunction<
+  DeepPartial<ResponsiveImageLoaderConfig>
+> = function (source) {
+  const callback = this.async();
 
-export default defineLoader(function (source) {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const callback = this.async()!;
-
-  const userOptions = getOptions(
-    this,
-  ) as DeepPartial<ResponsiveImageLoaderConfig>;
-
-  // TODO: check TS problem with readonly json-schema
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate(OPTIONS_SCHEMA as any, userOptions, {
-    name: 'Responsive image loader',
-  });
+  const userOptions = this.getOptions(OPTIONS_SCHEMA);
 
   const {
     paths: pathOptions,
@@ -50,7 +36,7 @@ export default defineLoader(function (source) {
   const { sourceWithPlaceholders, parsedImages } = parse(
     this.context,
     this.rootContext,
-    source.toString(),
+    source,
     defaultSize,
     viewportAliases,
   );
@@ -133,5 +119,7 @@ export default defineLoader(function (source) {
     .then((responsiveImages) =>
       callback(null, enhance(sourceWithPlaceholders, responsiveImages)),
     )
-    .catch((err) => callback(err));
-});
+    .catch(callback);
+};
+
+export default loader;
