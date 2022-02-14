@@ -1,16 +1,16 @@
-import { ChildProcess, spawn, exec } from 'child_process';
+import { ChildProcess, exec, spawn } from 'child_process';
 import { writeFileSync } from 'fs';
-import { map } from 'lodash';
-import { parse, join } from 'path';
 import got from 'got';
-import { loader } from 'webpack';
-import { getTempImagesDir } from '../../base';
+import { map } from 'lodash-es';
+import { join, parse } from 'path';
+import { getTempImagesDir } from 'src/base';
+import { ResponsiveImageLoaderContext } from 'src/config';
 import {
   generateTransformationUri,
   isCustomTransformation,
   TransformationDescriptor,
   TransformationSource,
-} from '../../transformation';
+} from 'src/transformation';
 import { TransformationAdapter } from '../transformers';
 
 const THUMBOR_URL = 'http://localhost';
@@ -63,7 +63,7 @@ function generateTransformationUrl(
 }
 
 function createFiles(
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   imagePath: string,
   transformations: TransformationDescriptor[],
 ): Promise<TransformationSource[]> {
@@ -83,7 +83,7 @@ function createFiles(
         const { base } = parse(uri);
         const path = join(getTempImagesDir(), base);
 
-        this.emitFile(uriWithHash, result, {});
+        this.emitFile(uriWithHash, result);
         writeFileSync(path, result);
 
         return {
@@ -99,7 +99,7 @@ function createFiles(
           ],
         };
       } catch (e) {
-        this.emitError(e);
+        this.emitError(e as Error);
         throw e;
       }
     }),
@@ -159,7 +159,9 @@ export const thumborDockerTransformer: TransformationAdapter = async function (
     );
     DOCKER_PROCESS.on('error', (err) =>
       this.emitError(
-        `An error has been thrown while running the docker container with text "${err.message}", have you installed docker and run "docker pull minimalcompact/thumbor"?`,
+        new Error(
+          `An error has been thrown while running the docker container with text "${err.message}", have you installed docker and run "docker pull minimalcompact/thumbor"?`,
+        ),
       ),
     );
 

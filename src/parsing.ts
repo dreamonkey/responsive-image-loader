@@ -1,4 +1,4 @@
-import { defaults, isNull, isUndefined, mapValues, max } from 'lodash';
+import { defaults, isNull, isUndefined, mapValues, max } from 'lodash-es';
 import { lookup } from 'mime-types';
 import { resolve } from 'path';
 import { Dictionary } from 'ts-essentials';
@@ -29,16 +29,20 @@ interface TagDescriptor {
 }
 
 const IMAGES_PATTERN = /<img.*?\/>/gs;
-const BACKGROUND_IMAGES_PATTERN = /<[a-z]\w*(?=[^<>]*\sresponsive-bg="\S+").*?>/gis;
-const IMAGES_ATTRIBUTES_PATTERN = /^<img(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
-const BACKGROUND_IMAGES_ATTRIBUTE_PATTERN = /^<[a-z][\s\S]*(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\sresponsive-bg="(\S+)").*>$/is;
+const BACKGROUND_IMAGES_PATTERN =
+  /<[a-z]\w*(?=[^<>]*\sresponsive-bg="\S+").*?>/gis;
+const IMAGES_ATTRIBUTES_PATTERN =
+  /^<img(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\ssrc="(\S+)"\s.*).*\/>$/s;
+const BACKGROUND_IMAGES_ATTRIBUTE_PATTERN =
+  /^<[a-z][\s\S]*(?=.*\sresponsive(?:="(\S+)")?\s.*)(?=.*\sresponsive-bg="(\S+)").*>$/is;
 const OPTION_PATTERN = /^([^\s{]+)(?:{([\w|]+)})?$/;
 // For all subsequent patterns, only the first match is taken into account
 const CLASS_PATTERN = /class="([^"]+)"/;
 const IMG_CLASS_PATTERN = /responsive-img-class(?:="([^"]+)")?/;
 const PICTURE_CLASS_PATTERN = /responsive-picture-class(?:="([^"]+)")?/;
 const ART_DIRECTION_ATTRIBUTE_PATTERN = /responsive-ad(?:="(\S+)")?/;
-const ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN = /responsive-ad-ignore(?:="(\S+)")?/;
+const ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN =
+  /responsive-ad-ignore(?:="(\S+)")?/;
 
 const imagesMatchesMap: { [index: string]: string } = {};
 
@@ -172,9 +176,8 @@ function parseArtDirectionAttributes(
   if (!isNull(artDirectionMatches)) {
     const [, encodedTransformations] = artDirectionMatches;
 
-    const artDirectionIgnoreMatches = ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN.exec(
-      tag,
-    );
+    const artDirectionIgnoreMatches =
+      ART_DIRECTION_IGNORE_ATTRIBUTE_PATTERN.exec(tag);
 
     return {
       // Even if typings doesn't reflect so, capturing groups with no match returns undefined
@@ -268,7 +271,9 @@ export function parse(
     );
 
     if (!isUndefined(artDirectionInlineOptions)) {
-      ((responsiveImage as unknown) as TransformationResponsiveImage).options.inlineArtDirection = artDirectionInlineOptions;
+      (
+        responsiveImage as TransformationResponsiveImage
+      ).options.inlineArtDirection = artDirectionInlineOptions;
     }
 
     responsiveImages.push(responsiveImage);
@@ -313,9 +318,8 @@ export function enhance(
         ? originalClass
         : responsiveImgClassMatches[1] ?? '';
 
-      const responsivePictureClassMatches = PICTURE_CLASS_PATTERN.exec(
-        imageMatch,
-      );
+      const responsivePictureClassMatches =
+        PICTURE_CLASS_PATTERN.exec(imageMatch);
       const responsivePictureClass = isNull(responsivePictureClassMatches)
         ? originalClass
         : responsivePictureClassMatches[1] ?? '';

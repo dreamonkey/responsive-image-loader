@@ -10,9 +10,8 @@ import {
   merge,
   omit,
   union,
-} from 'lodash';
+} from 'lodash-es';
 import { Dictionary } from 'ts-essentials';
-import { loader } from 'webpack';
 import {
   BaseResponsiveImage,
   BaseSource,
@@ -20,6 +19,7 @@ import {
   resolveAliases,
   ViewportAliasesMap,
 } from './base';
+import { ResponsiveImageLoaderContext } from './config';
 import { deepFreeze } from './helpers';
 import { ResponsiveImage } from './parsing';
 import { thumborDockerTransformer } from './transformers/thumbor/thumbor';
@@ -255,7 +255,7 @@ const presetTransformers: TransformationAdapterPresetsMap = deepFreeze({
 });
 
 export function transformImage(
-  this: loader.LoaderContext,
+  this: ResponsiveImageLoaderContext,
   imagePath: string,
   transformations: TransformationDescriptor[],
   transformer: TransformationConfig['transformer'],

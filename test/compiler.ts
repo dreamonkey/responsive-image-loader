@@ -1,14 +1,15 @@
 import MemoryFileSystem from 'memory-fs';
 import { resolve } from 'path';
-import webpack from 'webpack';
+import { webpack, Stats } from 'webpack';
 import { DeepPartial } from 'ts-essentials';
 import { ResponsiveImageLoaderConfig } from 'src/config';
 
 export async function compiler(
   entryPath: string,
   options: DeepPartial<ResponsiveImageLoaderConfig> = {},
-): Promise<webpack.Stats> {
+): Promise<Stats> {
   const compiler = webpack({
+    mode: 'production',
     context: __dirname,
     entry: entryPath,
     output: {
@@ -38,11 +39,15 @@ export async function compiler(
 
   return new Promise((resolve, reject) => {
     compiler.run((err, stats) => {
-      if (err) reject(err);
-      if (stats.hasErrors())
-        reject(new Error(stats.toJson().errors.join(' // ')));
+      if (err) {
+        reject(err);
+      }
+      if (stats) {
+        if (stats.hasErrors())
+          reject(new Error(stats.toJson().errors?.join(' // ')));
 
-      resolve(stats);
+        resolve(stats);
+      }
     });
   });
 }

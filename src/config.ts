@@ -1,3 +1,6 @@
+import { JSONSchema7 } from 'json-schema';
+import { DeepPartial } from 'ts-essentials';
+import { LoaderContext } from 'webpack';
 import { BaseConfig } from './base';
 import { ConversionConfig } from './conversion';
 import { deepFreeze } from './helpers';
@@ -10,7 +13,20 @@ export interface ResponsiveImageLoaderConfig extends BaseConfig {
   resolutionSwitching: ResizingConfig;
 }
 
-export const OPTIONS_SCHEMA = deepFreeze({
+export type ResponsiveImageLoaderContext = LoaderContext<
+  DeepPartial<ResponsiveImageLoaderConfig>
+>;
+
+declare module 'json-schema' {
+  interface JSONSchema7 {
+    // TODO: register ajv-keywords custom instanceof validator
+    // Unsure why they aren't registering it themselves
+    instanceof?: string;
+  }
+}
+
+export const OPTIONS_SCHEMA = deepFreeze<JSONSchema7>({
+  title: 'Responsive image loader',
   type: 'object',
   properties: {
     defaultSize: { type: 'number' },
@@ -31,7 +47,7 @@ export const OPTIONS_SCHEMA = deepFreeze({
           oneOf: [
             { type: 'null' },
             { type: 'string' },
-            { instanceof: 'Function' },
+            { type: 'object', instanceof: 'Function' },
           ],
         },
         enabledFormats: {
@@ -52,7 +68,7 @@ export const OPTIONS_SCHEMA = deepFreeze({
           oneOf: [
             { type: 'null' },
             { type: 'string' },
-            { instanceof: 'Function' },
+            { type: 'object', instanceof: 'Function' },
           ],
         },
         defaultRatio: { type: 'string' },
@@ -69,7 +85,7 @@ export const OPTIONS_SCHEMA = deepFreeze({
           oneOf: [
             { type: 'null' },
             { type: 'string' },
-            { instanceof: 'Function' },
+            { type: 'object', instanceof: 'Function' },
           ],
         },
         supportRetina: { type: 'boolean' },

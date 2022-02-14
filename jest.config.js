@@ -4,11 +4,13 @@ const esModules = ['lodash-es'].join('|');
 module.exports = {
   globals: {
     __DEV__: true,
+    // Remove if using `const enums`
+    // See https://huafu.github.io/ts-jest/user/config/isolatedModules#example
+    'ts-jest': {
+      isolatedModules: true,
+    },
   },
-  setupFilesAfterEnv: ['./test/jest.setup.js'],
-  // Jest assumes by default we are testing for a browser
-  // See https://github.com/facebook/jest/issues/1909#issuecomment-252981401
-  testEnvironment: 'node',
+  setupFilesAfterEnv: ['./test/jest.setup.ts'],
   // noStackTrace: true,
   // bail: true,
   // cache: false,
@@ -30,12 +32,9 @@ module.exports = {
   moduleNameMapper: {
     '^~/(.*)$': '<rootDir>/$1',
     '^src/(.*)$': '<rootDir>/src/$1',
-    // TODO: temporary fix for lodash imports, while we search a way to manage not transpiled ES Modules
-    // See https://github.com/quasarframework/quasar-testing/issues/48#issuecomment-507763139
-    // '^lodash-es$': 'lodash',
   },
   transform: {
-    // Jest fire off an error when JS file are not already compiled (lodash-es in our case)
+    // Jest fire off an error when JS file are not already compiled
     // We use babel-jest to compile them
     // See https://github.com/nrwl/nx/issues/812#issuecomment-429488470
     // See https://jestjs.io/docs/en/configuration.html#transformignorepatterns-array-string
