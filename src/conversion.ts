@@ -6,7 +6,7 @@ import {
   ConversionAdapterPresets,
 } from './converters/converters';
 import { sharpConverter } from './converters/sharp';
-import { deepFreeze } from './helpers';
+import { deepFreeze, selectFromPreset } from './helpers';
 import {
   BaseResponsiveImage,
   BaseSource,
@@ -134,6 +134,15 @@ export async function convertImage(
   responsiveImage: BaseResponsiveImage,
   { converter, enabledFormats }: ConversionConfig,
 ): Promise<ConversionResponsiveImage> {
+  if (typeof converter === 'string') {
+    try {
+      converter = selectFromPreset(presetConverters, converter);
+    } catch (e) {
+      this.emitError(e as Error);
+      converter = null;
+    }
+  }
+
   if (isNull(converter)) {
     responsiveImage.sources = await Promise.all(
       responsiveImage.sources.map(async (source) => ({
@@ -143,10 +152,6 @@ export async function convertImage(
     );
 
     return Promise.resolve(responsiveImage as ConversionResponsiveImage);
-  }
-
-  if (typeof converter === 'string') {
-    converter = presetConverters[converter];
   }
 
   const availableFormats = Object.entries(enabledFormats)

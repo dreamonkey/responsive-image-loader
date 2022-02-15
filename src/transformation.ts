@@ -20,7 +20,7 @@ import {
   ViewportAliasesMap,
 } from './base';
 import { ResponsiveImageLoaderContext } from './config';
-import { deepFreeze } from './helpers';
+import { deepFreeze, selectFromPreset } from './helpers';
 import { ResponsiveImage } from './parsing';
 import { thumborDockerTransformer } from './transformers/thumbor/thumbor';
 import {
@@ -260,12 +260,17 @@ export function transformImage(
   transformations: TransformationDescriptor[],
   transformer: TransformationConfig['transformer'],
 ): Promise<TransformationSource[]> {
-  if (isNull(transformer) || transformations.length === 0) {
-    return Promise.resolve([]);
+  if (typeof transformer === 'string') {
+    try {
+      transformer = selectFromPreset(presetTransformers, transformer);
+    } catch (e) {
+      this.emitError(e as Error);
+      transformer = null;
+    }
   }
 
-  if (typeof transformer === 'string') {
-    transformer = presetTransformers[transformer];
+  if (isNull(transformer) || transformations.length === 0) {
+    return Promise.resolve([]);
   }
 
   return transformer.call(this, imagePath, transformations);

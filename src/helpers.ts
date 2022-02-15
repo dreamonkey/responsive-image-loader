@@ -29,3 +29,20 @@ export function deepFreeze<T>(object: T): T {
 export function getHashDigest(data: string | Buffer) {
   return createHash('md5').update(data).digest('hex').substring(0, 8);
 }
+
+export function selectFromPreset<
+  P extends Record<string, unknown>,
+  K extends string,
+>(presetMap: P, option: K): P[K] | null {
+  const presetMapKeys = Object.keys(presetMap);
+
+  if (!presetMapKeys.includes(option)) {
+    throw new Error(
+      `Cannot find option "${option}", here's available ones: ${presetMapKeys.join(
+        '|',
+      )}`,
+    );
+  }
+
+  return presetMap[option];
+}
