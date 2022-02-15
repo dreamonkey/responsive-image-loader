@@ -1,5 +1,5 @@
-import { ResponsiveImageLoaderContext } from 'src/config';
-import { Breakpoint, SupportedImageFormats } from 'src/base';
+import { ResponsiveImageLoaderContext } from '../config';
+import { Breakpoint, SupportedImageFormats } from '../base';
 
 export type ConversionAdapter = (
   this: ResponsiveImageLoaderContext,

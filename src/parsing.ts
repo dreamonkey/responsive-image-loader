@@ -1,4 +1,4 @@
-import { defaults, isNull, isUndefined, mapValues, max } from 'lodash-es';
+import { defaults, isNull, isUndefined, mapValues, max } from 'lodash';
 import { lookup } from 'mime-types';
 import { resolve } from 'path';
 import { Dictionary } from 'ts-essentials';

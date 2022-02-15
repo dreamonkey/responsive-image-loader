@@ -1,5 +1,5 @@
-import { ResponsiveImageLoaderContext } from 'src/config';
-import { Breakpoint } from 'src/base';
+import { ResponsiveImageLoaderContext } from '../config';
+import { Breakpoint } from '../base';
 
 export type ResizingAdapter = (
   this: ResponsiveImageLoaderContext,

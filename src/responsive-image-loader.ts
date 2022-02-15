@@ -1,4 +1,4 @@
-import { each, merge } from 'lodash-es';
+import { each, merge } from 'lodash';
 import { LoaderDefinitionFunction } from 'webpack';
 import { OPTIONS_SCHEMA, ResponsiveImageLoaderConfig } from './config';
 import { ConversionResponsiveImage, convertImage } from './conversion';

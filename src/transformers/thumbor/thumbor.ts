@@ -1,16 +1,16 @@
 import { ChildProcess, exec, spawn } from 'child_process';
 import { writeFileSync } from 'fs';
 import got from 'got';
-import { map } from 'lodash-es';
+import { map } from 'lodash';
 import { join, parse } from 'path';
-import { getTempImagesDir } from 'src/base';
-import { ResponsiveImageLoaderContext } from 'src/config';
+import { getTempImagesDir } from '../../base';
+import { ResponsiveImageLoaderContext } from '../../config';
 import {
   generateTransformationUri,
   isCustomTransformation,
   TransformationDescriptor,
   TransformationSource,
-} from 'src/transformation';
+} from '../../transformation';
 import { TransformationAdapter } from '../transformers';
 
 const THUMBOR_URL = 'http://localhost';

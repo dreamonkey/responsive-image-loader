@@ -1,6 +1,6 @@
 import { format, parse } from 'path';
 import sharp from 'sharp';
-import { generateResizingUri } from 'src/resizing';
+import { generateResizingUri } from '../resizing';
 import { ResizingAdapter } from './resizers';
 
 export const sharpResizer: ResizingAdapter = async function (
