@@ -600,14 +600,23 @@ const opts = {
 Being a webpack loader, it has limits derived by being a build-time tool: it will only work for images statically referenced in your code.
 If you are dynamically changing your `<img>` `src` attribute, this loader cannot help you. If you are doing so with a JS framework via dynamic bindings (Vue `:src="..."`, Angular `[src]="..."`, etc), changing your component to use slots instead could help you and make your components more flexible.
 
-### Only use in production
+### Only use in production and/or with webpack 'filesystem' cache enabled
 
-The compilation time overhead of this loader is high, due to image processing. It is not advisable to use it during development unless you have a really valid motivation to do so. You'll probably want to apply it conditionally to your webpack chain only when compiling for production.
+The compilation time overhead of this loader is REALLY high, due to image processing. It is not advisable to use it during development unless you have a really valid motivation to do so. You'll probably want to apply it conditionally to your webpack chain only when building for production.
 
 ```javascript
 if (process.env.NODE_ENV === "production") {
     webpackConfig.module.rules.push({ ... });
 }
+```
+
+Since Webpack 5 comes with a build-in cache system, you can leverage it to skip image generation step after the first run.
+This may allow you to also use the loader when in dev mode, even tho the loader will still execute (and thus re-generate images) if you change a file containing an image tagged as responsive, resulting in an extremely slow HMR.
+
+> Note this could actually be avoided by adding a loader-level cache mechanism skipping execution if the hash of image and options hasn't changed, but we haven't had the time to implement this. Any help is appreciated, and it will allow to use this loader in dev mode
+
+```javascript
+webpackConfig.cache.type = 'filesystem';
 ```
 
 ### Why do I get `TypeError: Cannot read property 'replace' of undefined` when building?
@@ -635,7 +644,7 @@ extendWebpack(webpackConfig, { isClient }) {
   // ... other configurations
 
   if (isClient) {
-    cfg.entry['responsive-bg-image-handler'] =
+    webpackConfig.entry['responsive-bg-image-handler'] =
       '@dreamonkey/responsive-image-loader';
   }
 },
@@ -797,3 +806,9 @@ If you discover any security related issues, please email security@dreamonkey.co
 ## <span id="license"></span> License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+<!--
+  TODO: We're stuck to use lodash as TS won't transpile non-TS files and we don't want to add Babel too.
+  Same reason why we cannot use absolute paths with TS mappings, TS won't transform them and we're not processing
+  those files via webpack or Babel
+-->

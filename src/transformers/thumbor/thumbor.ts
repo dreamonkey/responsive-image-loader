@@ -106,30 +106,7 @@ function createFiles(
   );
 }
 
-function thumborReady(): Promise<void> {
-  const healthcheckUrl = `${THUMBOR_URL}:${THUMBOR_PORT}/healthcheck`;
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-  return new Promise(async (resolve, reject) => {
-    // Wait thumbor process to initialize
-    // Waiting 100ms seems to work, even without the healthcheck,
-    // If we omit the initial waiting, all healthcheck requests fails
-    // This behaviour is still unexplained
-    await new Promise((resolve2) => setTimeout(resolve2, 100));
-    let isReady = false;
-    let retries = 0;
-    while (!isReady && retries < 10) {
-      isReady = (await got(healthcheckUrl).text()) === 'WORKING';
-      retries++;
-      await new Promise((resolve4) => setTimeout(resolve4, 150));
-    }
-
-    if (retries === 10) {
-      reject();
-    }
-
-    resolve();
-  });
-}
+let dockerInstancesProgressiveId = 0;
 
 // Do not use lambda functions, they won't retain `this` context
 export const thumborDockerTransformer: TransformationAdapter = async function (
@@ -138,7 +115,14 @@ export const thumborDockerTransformer: TransformationAdapter = async function (
 ) {
   JOBS_IN_QUEUE++;
 
+  // The whole "keep thumbor process alive" system is needed as we don't have access to compilation hooks into loaders
+  // and we prefer avoiding using plugins for the time being
+  // TODO: convert to a plugin to start and stop thumbor container using compilation hooks and remove this process management
   if (!DOCKER_PROCESS) {
+    // If the previous instance has been killed and another one must be spawned,
+    // we use a progressive id to avoid naming conflicts, since the previous container takes some time to shut down
+    const containerName = `${DOCKER_CONTAINER_NAME}-${dockerInstancesProgressiveId++}`;
+
     DOCKER_PROCESS = spawn(
       'docker',
       [
@@ -146,7 +130,7 @@ export const thumborDockerTransformer: TransformationAdapter = async function (
         '-p',
         `${THUMBOR_PORT}:80`,
         '--name',
-        DOCKER_CONTAINER_NAME,
+        containerName,
         '--env-file',
         THUMBOR_ENV_PATH,
         '--mount',
@@ -168,14 +152,16 @@ export const thumborDockerTransformer: TransformationAdapter = async function (
     DOCKER_PROCESS_KILL_TIMEOUT = setTimeout(() => {
       if (JOBS_IN_QUEUE === 0) {
         DOCKER_PROCESS?.kill();
-        exec(`docker container stop ${DOCKER_CONTAINER_NAME}`);
+        exec(`docker container stop ${containerName}`);
+        DOCKER_PROCESS = undefined;
       } else {
         DOCKER_PROCESS_KILL_TIMEOUT = DOCKER_PROCESS_KILL_TIMEOUT.refresh();
       }
-    }, 2000);
+      // We use an exotic timeout value to minimize issues related to process scheduling race conditions
+      // This is mostly needed for tests for which timers are probably batched by Jest, it shouldn't matter
+      // for real world usage
+    }, 3333);
   }
-
-  await thumborReady();
 
   const transformationSources: TransformationSource[] = [];
 

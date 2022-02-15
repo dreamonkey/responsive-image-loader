@@ -21,6 +21,7 @@
     "lint": "eslint --ext .ts ./",
     "test": "jest",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
+    "///": "Note we're not using webpack to process the whole package code, so we cannot use absolute paths as TSC won't replace them with relative ones in the final build and cause errors due to wrong file resultion when used into a package",
     "build": "rm -rf dist && tsc && copyfiles -f src/transformers/thumbor/.thumbor-env dist/src/transformers/thumbor && webpack",
     "//": "'--tag latest' cannot be managed with publishConfig because of https://github.com/yarnpkg/yarn/issues/5310",
     "deploy": "yarn build && yarn publish --tag latest"
