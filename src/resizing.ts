@@ -3,7 +3,7 @@ import { isNull, isUndefined, map, times } from 'lodash';
 import { format, join, parse } from 'path';
 import { Breakpoint, generateUri, getTempImagesDir, SizesMap } from './base';
 import { ResponsiveImageLoaderContext } from './config';
-import { deepFreeze } from './helpers';
+import { deepFreeze, selectFromPreset } from './helpers';
 import { ResponsiveImage } from './parsing';
 import { ResizingAdapter, ResizingAdapterPresets } from './resizers/resizers';
 import { sharpResizer } from './resizers/sharp';
@@ -265,12 +265,17 @@ export async function resizeImage(
     minSizeDifference,
   }: ResizingConfig,
 ): Promise<ResponsiveImage> {
-  if (isNull(resizer)) {
-    return Promise.resolve(image);
+  if (typeof resizer === 'string') {
+    try {
+      resizer = selectFromPreset(presetResizers, resizer);
+    } catch (e) {
+      this.emitError(e as Error);
+      resizer = null;
+    }
   }
 
-  if (typeof resizer === 'string') {
-    resizer = presetResizers[resizer];
+  if (isNull(resizer)) {
+    return Promise.resolve(image);
   }
 
   const artDirectionSources = image.sources.filter((source) =>
