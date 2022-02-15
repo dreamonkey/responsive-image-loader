@@ -1,5 +1,5 @@
 import { existsSync, statSync, writeFileSync } from 'fs';
-import { isNull, isUndefined, map, times } from 'lodash-es';
+import { isNull, isUndefined, map, times } from 'lodash';
 import { format, join, parse } from 'path';
 import { Breakpoint, generateUri, getTempImagesDir, SizesMap } from './base';
 import { ResponsiveImageLoaderContext } from './config';

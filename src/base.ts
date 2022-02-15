@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync } from 'fs';
-import { isUndefined, mapKeys } from 'lodash-es';
+import { isUndefined, mapKeys } from 'lodash';
 import { join, parse, posix } from 'path';
 import { Dictionary } from 'ts-essentials';
 import { getHashDigest } from './helpers';

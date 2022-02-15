@@ -1,8 +1,8 @@
-import { ResponsiveImageLoaderContext } from 'src/config';
+import { ResponsiveImageLoaderContext } from '../config';
 import {
   TransformationDescriptor,
   TransformationSource,
-} from 'src/transformation';
+} from '../transformation';
 
 // Do not use lambda functions, they won't retain `this` context
 export type TransformationAdapter = (

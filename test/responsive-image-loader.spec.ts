@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { existsOrCreateDirectory } from 'src/base';
-import { getHashDigest } from 'src/helpers';
+import { existsOrCreateDirectory } from '../src/base';
+import { getHashDigest } from '../src/helpers';
 import { compiler } from './compiler';
 
 const TEMP_DIR = 'dist/temp/test';

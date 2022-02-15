@@ -2,7 +2,7 @@ import MemoryFileSystem from 'memory-fs';
 import { resolve } from 'path';
 import { webpack, Stats } from 'webpack';
 import { DeepPartial } from 'ts-essentials';
-import { ResponsiveImageLoaderConfig } from 'src/config';
+import { ResponsiveImageLoaderConfig } from '../src/config';
 
 export async function compiler(
   entryPath: string,
@@ -43,8 +43,9 @@ export async function compiler(
         reject(err);
       }
       if (stats) {
-        if (stats.hasErrors())
+        if (stats.hasErrors()) {
           reject(new Error(stats.toJson().errors?.join(' // ')));
+        }
 
         resolve(stats);
       }
