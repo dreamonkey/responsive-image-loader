@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { existsOrCreateDirectory } from 'src/base';
+import { existsOrCreateDirectory } from '../src/base';
 import { compiler } from './compiler';
 
 const TEMP_DIR = 'dist/temp/test';

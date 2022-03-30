@@ -2,7 +2,7 @@ import MemoryFileSystem from 'memory-fs';
 import { resolve } from 'path';
 import webpack from 'webpack';
 import { DeepPartial } from 'ts-essentials';
-import { ResponsiveImageLoaderConfig } from 'src/config';
+import { ResponsiveImageLoaderConfig } from '../src/config';
 
 export async function compiler(
   entryPath: string,
