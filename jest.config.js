@@ -1,5 +1,5 @@
 /* eslint-env node */
-const esModules = ['lodash'].join('|');
+const esModules = ['lodash-es'].join('|');
 
 module.exports = {
   globals: {
@@ -32,10 +32,10 @@ module.exports = {
     '^src/(.*)$': '<rootDir>/src/$1',
     // TODO: temporary fix for lodash imports, while we search a way to manage not transpiled ES Modules
     // See https://github.com/quasarframework/quasar-testing/issues/48#issuecomment-507763139
-    // '^lodash$': 'lodash',
+    // '^lodash-es$': 'lodash',
   },
   transform: {
-    // Jest fire off an error when JS file are not already compiled (lodash in our case)
+    // Jest fire off an error when JS file are not already compiled (lodash-es in our case)
     // We use babel-jest to compile them
     // See https://github.com/nrwl/nx/issues/812#issuecomment-429488470
     // See https://jestjs.io/docs/en/configuration.html#transformignorepatterns-array-string
