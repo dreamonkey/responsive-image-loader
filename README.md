@@ -1,5 +1,7 @@
 # responsive-image-loader
 
+> This repo is abandoned, check out the next iteration of this project which uses [a webpack plugin](https://github.com/dreamonkey/responsive-image-loader) instad of a loader and solves many performance issues.
+
 **New package, who dis?**
 
 A webpack loader to automagically bring your website images to a whole new level of responsiveness!
